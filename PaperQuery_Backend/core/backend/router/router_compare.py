@@ -23,6 +23,19 @@ class CompareCreate(BaseModel):
     columns: list[str] = Field(default_factory=lambda: ['方法', '数据集', '指标', '局限'])
 
 
+def _source_for_cell(doc_id, item, chunks):
+    """Recover an omitted ID only when the generated value occurs verbatim in source."""
+    direct = chunks.get((doc_id, item.get('chunk_id')))
+    if direct is not None:
+        return direct
+    value = str(item.get('value') or '').strip()
+    if len(value) < 8 or value == '未验证':
+        return None
+    matches = [chunk for (source_doc, _), chunk in chunks.items()
+               if source_doc == doc_id and value.casefold() in chunk.text.casefold()]
+    return min(matches, key=lambda chunk: chunk.page_number) if matches else None
+
+
 def _serialize(db, session, project):
     cells = db.query(ComparisonCell).filter_by(session_id=session.session_id).all()
     docs = {doc.uid: doc for _, doc in project_documents(db, project)}
@@ -89,7 +102,7 @@ async def create_comparison(project_id: str, payload: CompareCreate, request: Re
             item = generated_rows.get(doc_id, {}).get(column, {})
             if not isinstance(item, dict):
                 item = {'value': str(item)}
-            chunk = chunks.get((doc_id, item.get('chunk_id')))
+            chunk = _source_for_cell(doc_id, item, chunks)
             verified = chunk is not None and (chunk.knowledge_id, doc_id) in source_keys
             db.add(ComparisonCell(session_id=session.session_id, document_id=doc_id, column_name=column,
                 value=str(item.get('value') or '未验证') if verified else '未验证',
