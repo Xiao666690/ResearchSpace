@@ -9,7 +9,10 @@
 **/node_modules/
 **/dist/
 **/.npm_cache/
+**/.npm-cache/
 **/.pip_cache/
+**/.pip-cache/
+**/.pydeps/
 **/*.pyc
 **/*.log
 **/*.db

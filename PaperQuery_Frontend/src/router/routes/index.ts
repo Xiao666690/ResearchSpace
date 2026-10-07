@@ -84,6 +84,8 @@ const routes: Array<RouteRecordRaw> = [
           { path: 'timeline', component: () => import('@/views/timeline/ResearchTimelineView.vue') },
           { path: 'compare', component: () => import('@/views/compare/CompareLabView.vue') },
           { path: 'evidence', component: () => import('@/views/evidence/EvidenceBoardView.vue') },
+          { path: 'studio', component: () => import('@/views/studio/ResearchStudioView.vue') },
+          { path: 'map', component: () => import('@/views/research-map/ResearchMapView.vue') },
         ],
       },
       // 团队管理：仅 admin 可进入（路由守卫见 router/index.ts）

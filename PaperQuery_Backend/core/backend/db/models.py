@@ -290,3 +290,70 @@ class ClaimEvidence(Base):
     evidence_text = Column(Text, nullable=False)
     stance = Column(String(32), nullable=False)
     confidence = Column(String(32), nullable=False, default='verified')
+
+
+class ResearchEntity(Base):
+    __tablename__ = 'research_entities'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    entity_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    entity_type = Column(String(32), nullable=False)
+    name = Column(String(255), nullable=False)
+    normalized_name = Column(String(255), nullable=False)
+    knowledge_id = Column(String(255))
+    document_id = Column(String(255))
+    page_number = Column(Integer)
+    chunk_id = Column(String(255))
+    confidence = Column(String(32), nullable=False, default='unverified')
+
+
+class ResearchRelation(Base):
+    __tablename__ = 'research_relations'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    relation_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    source_entity_id = Column(String(64), nullable=False)
+    target_entity_id = Column(String(64), nullable=False)
+    relation_type = Column(String(32), nullable=False)
+    knowledge_id = Column(String(255))
+    document_id = Column(String(255))
+    page_number = Column(Integer)
+    chunk_id = Column(String(255))
+    confidence = Column(String(32), nullable=False, default='unverified')
+
+
+class GraphBuildRun(Base):
+    __tablename__ = 'graph_build_runs'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    status = Column(String(32), nullable=False)
+    error = Column(Text)
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class StudioDocument(Base):
+    __tablename__ = 'studio_documents'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    studio_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    document_type = Column(String(32), nullable=False, default='note')
+    content_markdown = Column(Text, nullable=False, default='')
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class StudioCitation(Base):
+    __tablename__ = 'studio_citations'
+    __table_args__ = (UniqueConstraint('studio_id', 'citation_key'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    studio_id = Column(String(64), index=True, nullable=False)
+    citation_key = Column(String(32), nullable=False)
+    source_document_id = Column(String(255), nullable=False)
+    knowledge_id = Column(String(255), nullable=False)
+    page_number = Column(Integer, nullable=False)
+    chunk_id = Column(String(255), nullable=False)
