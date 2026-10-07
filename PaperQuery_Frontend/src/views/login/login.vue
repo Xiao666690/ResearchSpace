@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { ElNotification } from 'element-plus'
 import { login, register } from '@/api/auth'
-import paperAgentMark from '@/assets/img/paperagent-mark.png'
+const researchSpaceMark = '/researchspace-mark.svg'
 
 const username = ref('')
 const password = ref('')
@@ -86,9 +86,9 @@ const Login = async () => {
         <div class="brand-panel-inner">
           <div class="brand-logo">
             <span class="brand-logo-badge">
-              <img :src="paperAgentMark" alt="PaperAgent 标志" />
+              <img :src="researchSpaceMark" alt="ResearchSpace 标志" />
             </span>
-            <span class="brand-wordmark">PaperAgent</span>
+            <span class="brand-wordmark">研境 ResearchSpace</span>
           </div>
 
           <div class="brand-headline">
@@ -120,7 +120,7 @@ const Login = async () => {
         <Card class="login-card">
           <form @submit.prevent="Login">
             <CardHeader>
-              <CardTitle>{{ registering ? '创建 PaperAgent 账户' : '欢迎回来' }}</CardTitle>
+              <CardTitle>{{ registering ? '创建 ResearchSpace 账户' : '欢迎回来' }}</CardTitle>
               <p class="card-description">{{ registering ? '注册后即可建立自己的论文库与研究工作空间' : '登录后继续访问你的论文库与研究任务' }}</p>
             </CardHeader>
 

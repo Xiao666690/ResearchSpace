@@ -19,7 +19,7 @@ from core.backend.crud.crud_document import *
 from core.backend.crud.crud_knowledge import update_knowledge_content
 from core.backend.crud.crud_note import create_note, del_note
 from core.backend.crud.crud_tmpdocument import create_tmp_document, get_tmp_document_by_filename
-from core.backend.db.models import Knowledge, ProjectDocument
+from core.backend.db.models import Knowledge, ProjectDocument, ResearchProject
 from core.backend.router.req_res_schema import DeleteDocument
 from core.backend.schema.noteschema import NoteCreate, NoteDelete
 from core.backend.schema.schema import *
@@ -409,8 +409,12 @@ async def delete_document(deleteDocument:DeleteDocument,request:Request,token: s
             "msg": "文件不存在",
         }
     #在document表中删除
-    db.query(ProjectDocument).filter_by(knowledge_id=deleteDocument.knowledgeID,
-                                        document_id=deleteDocument.documentID).delete(synchronize_session=False)
+    owned_projects = db.query(ResearchProject.project_id).filter(ResearchProject.lid == user.workspace_lid)
+    db.query(ProjectDocument).filter(
+        ProjectDocument.project_id.in_(owned_projects),
+        ProjectDocument.knowledge_id == deleteDocument.knowledgeID,
+        ProjectDocument.document_id == deleteDocument.documentID,
+    ).delete(synchronize_session=False)
     db.delete(document)
     db.commit()
     #在向量数据库中删除

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from core.backend.db.models import (ActivityEvent, Artifact, Document, ProjectDocument,
+from core.backend.db.models import (ActivityEvent, Artifact, Document, ProjectDocument, ProjectMember,
                                     ResearchProject, ResearchTask)
 from core.backend.router.dependencies import get_db
 from core.backend.schema.projectschema import ProjectCreate, ProjectDocumentAdd, ProjectUpdate
@@ -38,6 +38,7 @@ def create_project(payload: ProjectCreate, user=Depends(get_current_user), db: S
     if not row.name:
         raise HTTPException(422, '项目名称不能为空')
     db.add(row)
+    db.add(ProjectMember(project_id=row.project_id, username=user.username, role='OWNER'))
     emit_event(db, lid=user.workspace_lid, project_id=row.project_id, event_type='PROJECT_CREATED',
                target_type='project', target_id=row.project_id, title=row.name)
     db.commit()
@@ -75,7 +76,7 @@ def update_project(project_id: str, payload: ProjectUpdate, user=Depends(get_cur
 @router.delete('/{project_id}')
 def archive_project(project_id: str, user=Depends(get_current_user), db: Session = Depends(get_db)):
     row = get_project_or_404(db, project_id, user)
-    require_project_owner(row, user)
+    require_project_owner(row, user, db)
     row.status = 'archived'
     emit_event(db, lid=row.lid, project_id=project_id, event_type='PROJECT_ARCHIVED',
                target_type='project', target_id=project_id, title=row.name)
@@ -86,7 +87,7 @@ def archive_project(project_id: str, user=Depends(get_current_user), db: Session
 @router.post('/{project_id}/restore')
 def restore_project(project_id: str, user=Depends(get_current_user), db: Session = Depends(get_db)):
     row = get_project_or_404(db, project_id, user, include_archived=True)
-    require_project_owner(row, user)
+    require_project_owner(row, user, db)
     row.status = 'active'
     emit_event(db, lid=row.lid, project_id=project_id, event_type='PROJECT_RESTORED',
                target_type='project', target_id=project_id, title=row.name)

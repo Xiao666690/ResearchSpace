@@ -58,6 +58,8 @@ export const useMessageListStore = defineStore('messageList', () => {
   }
 
   function addGptMessage(question: string, ids: string[]) {
+    const scopePath = window.location.pathname
+    const sameScope = () => window.location.pathname === scopePath
     const projectId = window.location.pathname.match(/\/home\/projects\/([^/]+)\/chat(?:\/|$)/)?.[1]
     const projectStore = useResearchProjectStore()
     const allowedIds = new Set(projectStore.projectDocuments.map(paper => paper.document_id))
@@ -66,7 +68,7 @@ export const useMessageListStore = defineStore('messageList', () => {
     const model = modelStore.currentModel
     const modelLabel = modelStore.getModelLabel(model)
     const newId = state.messageList.length
-    const memory = projectId ? '' : useMemoryStore().getMemory
+    const memory = useMemoryStore().getMemory
     let answer = ''
     let citations: CitationItem[] = []
 
@@ -106,13 +108,16 @@ export const useMessageListStore = defineStore('messageList', () => {
       model,
       memory,
       (text) => {
+        if (!sameScope()) return
         answer += text
         updateMessage(newId, text)
       },
       (cits) => {
+        if (!sameScope()) return
         citations = cits
       },
       (progress) => {
+        if (!sameScope()) return
         if (state.messageList[newId]) {
           const message = state.messageList[newId]
           message.searchStatus = progress.text
@@ -123,6 +128,7 @@ export const useMessageListStore = defineStore('messageList', () => {
         }
       },
       (result) => {
+        if (!sameScope()) return
         if (state.messageList[newId]) {
           state.messageList[newId].externalPapers = result
         }
@@ -131,6 +137,7 @@ export const useMessageListStore = defineStore('messageList', () => {
       projectId,
     )
       .then(() => {
+        if (!sameScope()) return null
         if (state.messageList[newId]) {
           state.messageList[newId].citations = citations
           state.messageList[newId].status = 'done'
@@ -140,12 +147,14 @@ export const useMessageListStore = defineStore('messageList', () => {
         return updateMemory(question, memory, answer)
       })
       .then((data: any) => {
+        if (!sameScope()) return
         if (data?.context) {
           useMemoryStore().setMemory(data.context)
         }
         saveHistorySnapshot()
       })
       .catch((error) => {
+        if (!sameScope()) return
         console.error(error)
         if (state.messageList[newId]) {
           state.messageList[newId].status = 'error'

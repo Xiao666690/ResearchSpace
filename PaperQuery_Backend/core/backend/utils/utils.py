@@ -1,8 +1,9 @@
 # 使用Data 生成token
+from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import re
 import json
-from typing import Annotated, Union
+from typing import Annotated, Union, TYPE_CHECKING
 import fitz
 from colorama import Fore, Style
 import jwt,os
@@ -15,7 +16,8 @@ from core.backend.db.models import Team, TeamMember
 from core.backend.router.dependencies import *
 
 from core.utils.util import cal_file_md5, check_and_parse_json, split_text_into_chunks
-from core.vectordb.chromadb import AcadeChroma
+if TYPE_CHECKING:
+    from core.vectordb.chromadb import AcadeChroma
 
 
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):

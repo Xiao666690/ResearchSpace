@@ -18,7 +18,7 @@ from core.backend.db.models import ActivityEvent, Document, TMPDocument
 from core.backend.router.dependencies import get_db
 from core.backend.utils.utils import get_current_user
 from core.backend.router.req_res_schema import QARequest
-from core.backend.services.project_service import get_project_or_404, project_document_ids, project_documents
+from core.backend.services.project_service import get_project_or_404, project_documents, resolve_project_document_ids
 from core.backend.services.event_service import emit_event
 from core.decision.engine import DecisionEngine
 from core.decision.external_search import (
@@ -94,10 +94,7 @@ def qa_stream(
 ):
     if qa.project_id:
         project = get_project_or_404(db, qa.project_id, user)
-        allowed_ids = project_document_ids(db, project)
-        if qa.document_ids and not set(qa.document_ids).issubset(allowed_ids):
-            raise HTTPException(status_code=403, detail='部分论文不属于当前研究项目')
-        qa.document_ids = list(dict.fromkeys(qa.document_ids)) if qa.document_ids else sorted(allowed_ids)
+        qa.document_ids = resolve_project_document_ids(db, project, qa.document_ids)
     selected_papers = []
     if qa.document_ids:
         selected_ids = set(qa.document_ids)

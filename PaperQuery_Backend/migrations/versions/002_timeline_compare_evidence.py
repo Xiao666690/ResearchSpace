@@ -12,7 +12,8 @@ depends_on = None
 
 
 def upgrade():
-    Base.metadata.create_all(bind=op.get_bind(), checkfirst=True)
+    names = ('comparison_sessions', 'comparison_cells', 'research_claims', 'claim_evidence')
+    Base.metadata.create_all(bind=op.get_bind(), tables=[Base.metadata.tables[name] for name in names], checkfirst=True)
 
 
 def downgrade():

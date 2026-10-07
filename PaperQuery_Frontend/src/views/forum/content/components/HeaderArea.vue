@@ -4,7 +4,7 @@
     <div
       class="w-full mx-auto px-8 flex justify-between items-center space-x-20"
     >
-      <h1 class="text-3xl font-bold text-gray-900">PaperAgent</h1>
+      <h1 class="text-3xl font-bold text-gray-900">ResearchSpace</h1>
     </div>
   </header>
 </template>

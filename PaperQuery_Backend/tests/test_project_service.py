@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 
 from core.backend.db.database import Base
 from core.backend.db.models import Document, ProjectDocument, ResearchProject
-from core.backend.services.project_service import get_project_or_404, project_document_ids
+from core.backend.services.project_service import (get_project_or_404, project_document_ids,
+                                                   resolve_project_document_ids, require_parent_project)
 
 
 def test_project_scope_and_document_reference(tmp_path):
@@ -26,6 +27,14 @@ def test_project_scope_and_document_reference(tmp_path):
         db.commit()
         project = get_project_or_404(db, 'p1', SimpleNamespace(workspace_lid='workspace-a'))
         assert project_document_ids(db, project) == {'paper'}
+        assert resolve_project_document_ids(db, project, []) == ['paper']
+        assert resolve_project_document_ids(db, project, ['paper', 'paper']) == ['paper']
+        with pytest.raises(HTTPException) as forbidden:
+            resolve_project_document_ids(db, project, ['other'])
+        assert forbidden.value.status_code == 403
+        with pytest.raises(HTTPException) as wrong_parent:
+            require_parent_project(SimpleNamespace(project_id='another-project'), 'p1')
+        assert wrong_parent.value.status_code == 403
         with pytest.raises(HTTPException) as exc:
             get_project_or_404(db, 'p1', SimpleNamespace(workspace_lid='workspace-b'))
         assert exc.value.status_code == 404

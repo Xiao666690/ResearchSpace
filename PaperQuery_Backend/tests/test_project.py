@@ -3,7 +3,6 @@ from types import SimpleNamespace
 import pytest
 
 pytest.importorskip('jwt')
-pytest.importorskip('langchain_chroma')
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient

@@ -18,5 +18,13 @@
 import Content from './content/ContentView.vue'
 import SideBar from './sidebar/SideBar.vue'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
-// import { useMessageListStore } from '@/stores/messageList'
+import { onMounted } from 'vue'
+import { useMessageListStore } from '@/stores/messageList'
+import { useChatHistoryStore } from '@/stores/chatHistory'
+
+onMounted(() => {
+  // Each project gets its own saved conversations and model memory.
+  useMessageListStore().clearMessages()
+  useChatHistoryStore().loadFromStorage()
+})
 </script>

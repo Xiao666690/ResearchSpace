@@ -357,3 +357,34 @@ class StudioCitation(Base):
     knowledge_id = Column(String(255), nullable=False)
     page_number = Column(Integer, nullable=False)
     chunk_id = Column(String(255), nullable=False)
+
+
+class ProjectMember(Base):
+    __tablename__ = 'project_members'
+    __table_args__ = (UniqueConstraint('project_id', 'username'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(String(64), index=True, nullable=False)
+    username = Column(String(50), nullable=False)
+    role = Column(String(16), nullable=False, default='EDITOR')
+    joined_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ResearchComment(Base):
+    __tablename__ = 'research_comments'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    comment_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    username = Column(String(50), nullable=False)
+    target_type = Column(String(32), nullable=False)
+    target_id = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class TaskAssignment(Base):
+    __tablename__ = 'task_assignments'
+    __table_args__ = (UniqueConstraint('task_id', 'username'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    task_id = Column(String(64), index=True, nullable=False)
+    username = Column(String(50), nullable=False)
+    assigned_at = Column(TIMESTAMP, server_default=func.now())

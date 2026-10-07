@@ -12,7 +12,7 @@
       </div>
     </div>
     <input ref="fileInput" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden @change="importMarkdown" />
-    <div :id="editorId" class="note-editor" ref="noteEditorRef"></div>
+    <div :id="editorId" class="note-editor" ref="noteEditorRef" />
   </div>
 </template>
 
@@ -112,7 +112,7 @@ const exportNote = () => {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `PaperAgent_笔记_${props.documentID}.md`
+  anchor.download = `ResearchSpace_笔记_${props.documentID}.md`
   document.body.appendChild(anchor)
   anchor.click()
   anchor.remove()

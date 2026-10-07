@@ -55,6 +55,16 @@ async def update_current_note(noteUpdateRequest:NoteUpdateRequest,token:str=Depe
     request_data = NoteQuery(knowledgeID=noteUpdateRequest.knowledgeID, lid=user.workspace_lid, uid=noteUpdateRequest.documentID)
     if not get_note(db, request_data):
         db.add(Note(knowledgeID=noteUpdateRequest.knowledgeID, lid=user.workspace_lid, uid=noteUpdateRequest.documentID, note=noteUpdateRequest.note))
+        project_ids = [row.project_id for row in db.query(ProjectDocument).join(
+            ResearchProject, ResearchProject.project_id == ProjectDocument.project_id).filter(
+            ProjectDocument.knowledge_id == document.knowledgeID,
+            ProjectDocument.document_id == document.uid,
+            ResearchProject.lid == user.workspace_lid,
+            ResearchProject.status == 'active').all()]
+        for project_id in project_ids:
+            emit_event(db, lid=user.workspace_lid, project_id=project_id, event_type='NOTE_UPDATED',
+                       target_type='document', target_id=document.uid, title=document.documentName,
+                       metadata={'knowledge_id': document.knowledgeID})
         db.commit()
         return {"status_code": 200, "msg": "update note successfully"}
     #更新笔记

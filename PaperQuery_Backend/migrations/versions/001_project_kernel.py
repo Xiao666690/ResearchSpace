@@ -26,7 +26,11 @@ def upgrade():
     bind = op.get_bind()
     # The baseline schema was previously created by SQLAlchemy at import time.
     # Create absent tables only, then inspect legacy tables before adding columns.
-    Base.metadata.create_all(bind=bind, checkfirst=True)
+    names = ('users', 'teams', 'team_members', 'team_requests', 'knowledges',
+             'documents', 'tmpdocuments', 'notes', 'posts', 'commits',
+             'research_tasks', 'research_steps', 'skill_runs', 'artifacts',
+             'activity_events', 'research_projects', 'project_documents')
+    Base.metadata.create_all(bind=bind, tables=[Base.metadata.tables[name] for name in names], checkfirst=True)
     _column('users', 'role', Column('role', String(16), nullable=False, server_default='user'))
     _column('posts', 'category', Column('category', String(20), nullable=False, server_default='技术'))
     _column('research_tasks', 'parent_task_id', Column('parent_task_id', String(64)))

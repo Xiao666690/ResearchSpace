@@ -1,4 +1,4 @@
-# PaperAgent 一键启动脚本（Windows PowerShell）
+# ResearchSpace 一键启动脚本（Windows PowerShell）
 # 用法：右键"使用 PowerShell 运行"，或在 PowerShell 中执行  .\start_all.ps1
 # 说明：基于脚本自身所在目录定位前后端，压缩解压到任意路径均可启动。
 $ErrorActionPreference = "Stop"

@@ -34,6 +34,7 @@ from core.backend.router import (
     router_evidence_board,
     router_graph,
     router_studio,
+    router_collaboration,
 )
 from core.common.config import settings
 from core.decision.engine import DecisionEngine
@@ -194,9 +195,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PaperAgent API",
+    title="ResearchSpace API",
     version="2.0.0",
-    description="PaperAgent 论文问答、知识库与深度研究 API",
+    description="ResearchSpace 研究项目、论文证据与协作 API",
     lifespan=lifespan,
 )
 app.add_middleware(
@@ -227,6 +228,7 @@ app.include_router(router_compare.router)
 app.include_router(router_evidence_board.router)
 app.include_router(router_graph.router)
 app.include_router(router_studio.router)
+app.include_router(router_collaboration.router)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -45,7 +45,7 @@ router.beforeEach((to, _from, next) => {
 
 router.afterEach(() => {
   // const { title } = to.meta
-  document.title = `PaperAgent · Academic Research Workspace`
+  document.title = `研境 ResearchSpace · Intelligent Research Workspace`
   progress.done()
 })
 
