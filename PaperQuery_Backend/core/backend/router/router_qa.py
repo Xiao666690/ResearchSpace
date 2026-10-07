@@ -19,6 +19,7 @@ from core.backend.router.dependencies import get_db
 from core.backend.utils.utils import get_current_user
 from core.backend.router.req_res_schema import QARequest
 from core.backend.services.project_service import get_project_or_404, project_document_ids, project_documents
+from core.backend.services.event_service import emit_event
 from core.decision.engine import DecisionEngine
 from core.decision.external_search import (
     classify_external_request,
@@ -121,6 +122,10 @@ def qa_stream(
 
     # Count submitted Ask requests for this account. The event contains no question text.
     db.add(ActivityEvent(lid=user.workspace_lid, project_id=qa.project_id, event_type="ask"))
+    if qa.project_id:
+        emit_event(db, lid=user.workspace_lid, project_id=qa.project_id,
+                   event_type='QUESTION_ASKED', target_type='question',
+                   title=qa.question[:255])
     db.commit()
 
     trace_id = uuid.uuid4().hex[:12]
@@ -338,6 +343,7 @@ def qa_stream(
                             "knowledgeID": c.knowledge_id,
                             "page": c.page_number,
                             "chunk_id": c.chunk_id,
+                            "quote": c.quote,
                         }
                         for c in build_citations(citation_map)
                     ]
@@ -379,6 +385,7 @@ def qa_stream(
                     "knowledgeID": c.knowledge_id,
                     "page": c.page_number,
                     "chunk_id": c.chunk_id,
+                    "quote": c.quote,
                 }
                 for c in citations
             ]

@@ -81,6 +81,9 @@ const routes: Array<RouteRecordRaw> = [
           { path: 'library', component: () => import('@/views/projects/ProjectLibraryView.vue') },
           { path: 'chat', component: () => import('@/views/chat/chat.vue') },
           { path: 'research', component: () => import('@/views/research/ResearchView.vue') },
+          { path: 'timeline', component: () => import('@/views/timeline/ResearchTimelineView.vue') },
+          { path: 'compare', component: () => import('@/views/compare/CompareLabView.vue') },
+          { path: 'evidence', component: () => import('@/views/evidence/EvidenceBoardView.vue') },
         ],
       },
       // 团队管理：仅 admin 可进入（路由守卫见 router/index.ts）

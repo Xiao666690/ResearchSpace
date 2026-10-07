@@ -15,7 +15,7 @@ from core.backend.crud.crud_knowledge import (
 )
 from core.backend.crud.crud_note import del_note
 from core.backend.router.dependencies import get_db
-from core.backend.db.models import Document, Knowledge, TMPDocument
+from core.backend.db.models import Document, Knowledge, TMPDocument, ProjectDocument
 from core.backend.router.req_res_schema import DeleteKnowledge
 from core.backend.schema.noteschema import NoteDelete
 from core.backend.schema.schema import KnowledgeCreate, KnowledgeEdit
@@ -182,6 +182,7 @@ async def delete_knowledges(
                         os.remove(file_path)
             except Exception:
                 pass
+            db.query(ProjectDocument).filter_by(knowledge_id=kid, document_id=doc.uid).delete(synchronize_session=False)
             db.delete(doc)
         # 删除该知识下的临时文档记录
         db.query(TMPDocument).filter(

@@ -83,6 +83,25 @@ class AcadeChroma:
             ))
         return chunks
 
+    def get_document_chunks(self, document_id: str) -> list[EvidenceChunk]:
+        """Read indexed chunks in page order with stable Chroma record IDs."""
+        stored = self.chroma_db_layer1._collection.get(
+            where={'documentID': document_id}, include=['documents', 'metadatas'])
+        rows = []
+        for record_id, text, metadata in zip(stored.get('ids') or [],
+                                             stored.get('documents') or [],
+                                             stored.get('metadatas') or []):
+            if not text:
+                continue
+            meta = metadata or {}
+            rows.append(EvidenceChunk(
+                chunk_id=meta.get('chunk_id') or record_id,
+                document_id=document_id,
+                knowledge_id=meta.get('knowledge_name') or meta.get('knowledgeID'),
+                source=meta.get('source', ''),
+                page_number=int(meta.get('page_number', 0) or 0), text=text))
+        return sorted(rows, key=lambda item: item.page_number)
+
     def get_opening_evidence(self, document_ids: list[str]) -> list[EvidenceChunk]:
         """Return the opening PDF chunks for a paper overview question.
 

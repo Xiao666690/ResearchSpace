@@ -31,6 +31,8 @@
         </span>
       </div>
       <div v-else class="render" v-html="renderContent(props.content)" @click="handleCitationClick" />
+      <button v-if="route.params.projectId && props.status === 'done' && props.citations?.length"
+        class="save-evidence" @click="emit('save-evidence')">加入证据看板</button>
       <ExternalPaperList v-if="props.externalPapers?.items.length" :result="props.externalPapers" />
       <div v-if="((props.status === 'thinking' || props.status === 'streaming') && props.startedAt) || props.durationMs != null" class="response-time" aria-live="polite">
         <template v-if="props.status === 'thinking' || props.status === 'streaming'">
@@ -61,6 +63,7 @@
 }
 .message-row { width: 100%; min-width: 0; overflow: hidden; }
 .card { box-sizing: border-box; min-width: 0; max-width: 100%; }
+.save-evidence { margin-top: 12px; border: 1px solid #dcd7f4; border-radius: 7px; background: #f6f4ff; color: #5648ab; padding: 6px 10px; cursor: pointer; }
 :deep(.card .el-card__body) { min-width: 0; max-width: 100%; overflow: hidden; }
 :deep(.render) { min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
 :deep(.render pre), :deep(.render table) { max-width: 100%; overflow-x: auto; }
@@ -122,6 +125,7 @@
 <script setup lang="ts">
 import { ElCard } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
@@ -145,8 +149,10 @@ const props = defineProps<{
   durationMs?: number
   documents?: ChatDocumentSnapshot[]
 }>()
+const emit = defineEmits<{ (e: 'save-evidence'): void }>()
 
 const router = useRouter()
+const route = useRoute()
 const now = ref(Date.now())
 let timer: ReturnType<typeof setInterval> | undefined
 watch(() => props.status, (status) => {

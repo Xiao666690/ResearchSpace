@@ -6,6 +6,7 @@ export interface CitationItem {
   knowledgeID?: string
   page: number
   chunk_id: string
+  quote?: string
 }
 
 export interface ExternalPaper {

@@ -29,6 +29,9 @@ from core.backend.router import (
     router_dashboard,
     router_team,
     router_project,
+    router_timeline,
+    router_compare,
+    router_evidence_board,
 )
 from core.common.config import settings
 from core.decision.engine import DecisionEngine
@@ -217,6 +220,9 @@ app.include_router(router_research.router, tags=["router_research"])
 app.include_router(router_system.router, tags=["system"])
 app.include_router(router_dashboard.router, tags=["dashboard"])
 app.include_router(router_project.router)
+app.include_router(router_timeline.router)
+app.include_router(router_compare.router)
+app.include_router(router_evidence_board.router)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

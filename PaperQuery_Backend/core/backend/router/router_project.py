@@ -11,6 +11,7 @@ from core.backend.db.models import (ActivityEvent, Artifact, Document, ProjectDo
 from core.backend.router.dependencies import get_db
 from core.backend.schema.projectschema import ProjectCreate, ProjectDocumentAdd, ProjectUpdate
 from core.backend.services.project_service import get_project_or_404, project_documents, require_project_owner
+from core.backend.services.event_service import emit_event
 from core.backend.utils.utils import get_current_user
 
 router = APIRouter(prefix='/projects', tags=['projects'])
@@ -37,6 +38,8 @@ def create_project(payload: ProjectCreate, user=Depends(get_current_user), db: S
     if not row.name:
         raise HTTPException(422, '项目名称不能为空')
     db.add(row)
+    emit_event(db, lid=user.workspace_lid, project_id=row.project_id, event_type='PROJECT_CREATED',
+               target_type='project', target_id=row.project_id, title=row.name)
     db.commit()
     db.refresh(row)
     return {'status_code': 200, 'data': _project(row)}
@@ -74,6 +77,8 @@ def archive_project(project_id: str, user=Depends(get_current_user), db: Session
     row = get_project_or_404(db, project_id, user)
     require_project_owner(row, user)
     row.status = 'archived'
+    emit_event(db, lid=row.lid, project_id=project_id, event_type='PROJECT_ARCHIVED',
+               target_type='project', target_id=project_id, title=row.name)
     db.commit()
     return {'status_code': 200, 'data': _project(row)}
 
@@ -83,6 +88,8 @@ def restore_project(project_id: str, user=Depends(get_current_user), db: Session
     row = get_project_or_404(db, project_id, user, include_archived=True)
     require_project_owner(row, user)
     row.status = 'active'
+    emit_event(db, lid=row.lid, project_id=project_id, event_type='PROJECT_RESTORED',
+               target_type='project', target_id=project_id, title=row.name)
     db.commit()
     return {'status_code': 200, 'data': _project(row)}
 
@@ -117,6 +124,9 @@ def add_document(project_id: str, payload: ProjectDocumentAdd, user=Depends(get_
         link = ProjectDocument(project_id=project_id, knowledge_id=payload.knowledge_id,
                                document_id=payload.document_id, added_by=user.username)
         db.add(link)
+        emit_event(db, lid=project.lid, project_id=project_id, event_type='PAPER_ADDED',
+                   target_type='document', target_id=doc.uid, title=doc.documentName,
+                   metadata={'knowledge_id': doc.knowledgeID})
         db.commit()
     return {'status_code': 200, 'data': _paper(link, doc)}
 
@@ -130,5 +140,7 @@ def remove_document(project_id: str, document_id: str, knowledge_id: str,
     if link is None:
         raise HTTPException(404, '项目论文不存在')
     db.delete(link)
+    emit_event(db, lid=user.workspace_lid, project_id=project_id, event_type='PAPER_REMOVED',
+               target_type='document', target_id=document_id, metadata={'knowledge_id': knowledge_id})
     db.commit()
     return {'status_code': 200, 'msg': '已从项目移除论文'}

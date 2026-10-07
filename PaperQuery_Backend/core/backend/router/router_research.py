@@ -23,6 +23,7 @@ from core.backend.crud.crud_user import query_user
 from core.backend.db.models import Artifact, Document, ResearchStep, ResearchTask
 from core.backend.utils.utils import attach_workspace_lid, get_db
 from core.backend.services.project_service import get_project_or_404, project_document_ids, project_documents
+from core.backend.services.event_service import emit_event
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 router = APIRouter()
@@ -196,6 +197,10 @@ def _run_research_task(task_id: str, planning_goal: str, allowed_ids: list[str],
                         data_json=_json_dumps(safe_artifact),
                     ))
                 task.status = state.status
+                if task.project_id:
+                    emit_event(session, lid=task.lid, project_id=task.project_id,
+                               event_type='TASK_COMPLETED' if state.status == 'SUCCESS' else 'TASK_FAILED',
+                               target_type='task', target_id=task_id, title=task.goal[:255])
                 task.updated_at = _utc_now()
                 session.commit()
         except Exception as exc:
@@ -268,6 +273,10 @@ def create_task(
     )
     try:
         db.add(task)
+        if req.project_id:
+            emit_event(db, lid=user.workspace_lid, project_id=req.project_id,
+                       event_type='TASK_CREATED', target_type='task',
+                       target_id=task_id, title=req.goal[:255])
 
         db.commit()
     except Exception as exc:

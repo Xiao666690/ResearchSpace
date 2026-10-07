@@ -237,3 +237,56 @@ class ProjectDocument(Base):
     document_id = Column(String(255), nullable=False)
     added_by = Column(String(50))
     created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ComparisonSession(Base):
+    __tablename__ = 'comparison_sessions'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    question = Column(Text, nullable=False)
+    columns_json = Column(Text, nullable=False)
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ComparisonCell(Base):
+    __tablename__ = 'comparison_cells'
+    __table_args__ = (UniqueConstraint('session_id', 'document_id', 'column_name'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(64), index=True, nullable=False)
+    document_id = Column(String(255), nullable=False)
+    column_name = Column(String(255), nullable=False)
+    value = Column(Text)
+    evidence_document_id = Column(String(255))
+    knowledge_id = Column(String(255))
+    page_number = Column(Integer)
+    chunk_id = Column(String(255))
+    confidence = Column(String(32))
+
+
+class ResearchClaim(Base):
+    __tablename__ = 'research_claims'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    claim_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    status = Column(String(32), nullable=False, default='draft')
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ClaimEvidence(Base):
+    __tablename__ = 'claim_evidence'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    evidence_id = Column(String(64), unique=True, index=True, nullable=False)
+    claim_id = Column(String(64), index=True, nullable=False)
+    knowledge_id = Column(String(255), nullable=False)
+    document_id = Column(String(255), nullable=False)
+    page_number = Column(Integer, nullable=False)
+    chunk_id = Column(String(255), nullable=False)
+    evidence_text = Column(Text, nullable=False)
+    stance = Column(String(32), nullable=False)
+    confidence = Column(String(32), nullable=False, default='verified')
