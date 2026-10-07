@@ -48,11 +48,12 @@ const emit = defineEmits<{ (e: 'toggleCollapse'): void }>()
 const route = useRoute()
 const projectId = computed(() => typeof route.params.projectId === 'string' ? route.params.projectId : null)
 const isActive = (link: string) => {
-  if (link === '/home/projects') return route.path === link
-  if (link.includes('/library')) {
-    return ['/library', '/knowledge/', '/pdfInfo/'].some((part) => route.path.includes(part))
+  const path = route.path.toLowerCase()
+  const target = link.toLowerCase()
+  if (target === '/home/library') {
+    return path === target || path.startsWith('/home/knowledge/') || path.startsWith('/home/pdfinfo/')
   }
-  return route.path.toLowerCase() === link.toLowerCase()
+  return path === target
 }
 
 // 按角色动态渲染侧边栏：仅 admin 显示「管理团队」
