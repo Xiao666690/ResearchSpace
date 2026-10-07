@@ -25,7 +25,8 @@ export type ChatSession = {
 
 function getStorageKey() {
   const username = localStorage.getItem('username') || 'guest'
-  return `paperquery:chat-history:${username}`
+  const projectId = window.location.pathname.match(/\/home\/projects\/([^/]+)\/chat(?:\/|$)/)?.[1]
+  return projectId ? `researchspace:chat-history:${username}:${projectId}` : `paperquery:chat-history:${username}`
 }
 
 function createSessionId() {
@@ -36,6 +37,7 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
   const state = reactive({
     sessions: <ChatSession[]>[],
     currentSessionId: '',
+    activeScope: '',
   })
 
   function loadFromStorage() {

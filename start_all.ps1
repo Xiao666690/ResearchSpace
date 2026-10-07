@@ -1,4 +1,4 @@
-# PaperAgent 一键启动脚本（Windows PowerShell）
+# ResearchSpace 一键启动脚本（Windows PowerShell）
 # 用法：右键"使用 PowerShell 运行"，或在 PowerShell 中执行  .\start_all.ps1
 # 说明：基于脚本自身所在目录定位前后端，压缩解压到任意路径均可启动。
 $ErrorActionPreference = "Stop"
@@ -39,6 +39,15 @@ if ($missing.Count -gt 0) {
     Write-Host ""
     Write-Host "请补齐上述依赖后重新运行本脚本。" -ForegroundColor Red
     exit 1
+}
+
+# Upgrade the SQLite schema before any backend process opens it.
+Push-Location $bk
+try {
+    & $py -m alembic upgrade head
+    if ($LASTEXITCODE -ne 0) { throw "数据库迁移失败，已停止启动" }
+} finally {
+    Pop-Location
 }
 
 # ---- 端口占用检测 ----

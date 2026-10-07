@@ -19,7 +19,8 @@ from core.backend.crud.crud_document import *
 from core.backend.crud.crud_knowledge import update_knowledge_content
 from core.backend.crud.crud_note import create_note, del_note
 from core.backend.crud.crud_tmpdocument import create_tmp_document, get_tmp_document_by_filename
-from core.backend.db.models import Knowledge
+from core.backend.db.models import Knowledge, ProjectDocument, ResearchProject
+from core.backend.services.document_path import resolve_document_path
 from core.backend.router.req_res_schema import DeleteDocument
 from core.backend.schema.noteschema import NoteCreate, NoteDelete
 from core.backend.schema.schema import *
@@ -177,7 +178,7 @@ async def get_document(
             "status_code": 404,
             "msg": "document not found",
         }
-    file_path =os.getenv("AcadeAgent_DIR")+document.documentPath
+    file_path = resolve_document_path(document.documentPath)
     print("File_path",file_path) # 替换成你实际的 PDF 文件路径
     return FileResponse(file_path)
 
@@ -409,6 +410,12 @@ async def delete_document(deleteDocument:DeleteDocument,request:Request,token: s
             "msg": "文件不存在",
         }
     #在document表中删除
+    owned_projects = db.query(ResearchProject.project_id).filter(ResearchProject.lid == user.workspace_lid)
+    db.query(ProjectDocument).filter(
+        ProjectDocument.project_id.in_(owned_projects),
+        ProjectDocument.knowledge_id == deleteDocument.knowledgeID,
+        ProjectDocument.document_id == deleteDocument.documentID,
+    ).delete(synchronize_session=False)
     db.delete(document)
     db.commit()
     #在向量数据库中删除
@@ -425,7 +432,7 @@ async def delete_document(deleteDocument:DeleteDocument,request:Request,token: s
     #删除文件
     doc =get_document_by_uid(db, deleteDocument.documentID)#检查其他知识中是否还有该文档,如果有就不需要删除向量和源文件
     if not doc: #如果没有则进行删除
-        file_path =os.getenv("AcadeAgent_DIR")+document.documentPath
+        file_path = resolve_document_path(document.documentPath)
         os.remove(file_path)
     return {
         "status_code": 200,

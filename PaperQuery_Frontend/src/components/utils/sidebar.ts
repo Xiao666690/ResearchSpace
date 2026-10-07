@@ -1,56 +1,37 @@
-import { LayoutDashboard, LibraryBig, MessagesSquare, FlaskConical, UsersRound } from 'lucide-vue-next'
+import { LayoutDashboard, LibraryBig, MessagesSquare, FlaskConical, UsersRound,
+  FolderKanban, Network, BookMarked, Table2, Clock3, PenLine, NotebookPen } from 'lucide-vue-next'
 
-interface SidebarItem {
-  title: string
-  icon: any
-  link: string
+export interface SidebarItem { title: string; icon: any; link: string }
+export interface SidebarGroup { title: string; items: SidebarItem[] }
+
+export const getSidebarGroups = (role?: string | null, projectId?: string | null): SidebarGroup[] => {
+  const project = projectId ? `/home/projects/${projectId}` : ''
+  const groups: SidebarGroup[] = [
+    { title: 'HOME', items: [
+      { title: '概览', icon: LayoutDashboard, link: '/home/dashboard' },
+      { title: '研究项目', icon: FolderKanban, link: '/home/projects' },
+    ] },
+    { title: 'EXPLORE', items: [
+      { title: '论文资料', icon: LibraryBig, link: project ? `${project}/library` : '/home/library' },
+      ...(project ? [{ title: 'Research Map', icon: Network, link: `${project}/map` }] : []),
+    ] },
+    { title: 'THINK', items: [
+      ...(project ? [{ title: 'Evidence Board', icon: BookMarked, link: `${project}/evidence` },
+        { title: 'Compare Lab', icon: Table2, link: `${project}/compare` }] : []),
+      { title: '科研笔记', icon: NotebookPen, link: '/home/library/notes' },
+    ] },
+    { title: 'RESEARCH', items: [
+      { title: '智能问答', icon: MessagesSquare, link: project ? `${project}/chat` : '/home/chat' },
+      { title: 'Research Missions', icon: FlaskConical, link: project ? `${project}/research` : '/home/research' },
+      ...(project ? [{ title: 'Research Timeline', icon: Clock3, link: `${project}/timeline` }] : []),
+    ] },
+  ]
+  if (project) groups.push({ title: 'CREATE', items: [
+    { title: 'Research Studio', icon: PenLine, link: `${project}/studio` },
+  ] })
+  const collaborate: SidebarItem[] = []
+  if (project) collaborate.push({ title: '协作空间', icon: UsersRound, link: `${project}/collaboration` })
+  if (role === 'admin') collaborate.push({ title: '管理团队', icon: UsersRound, link: '/home/team' })
+  if (collaborate.length) groups.push({ title: 'COLLABORATE', items: collaborate })
+  return groups
 }
-
-// 基础导航（所有角色一致）
-const baseItems: SidebarItem[] = [
-  {
-    title: '概览',
-    icon: LayoutDashboard,
-    link: '/home/dashboard',
-  },
-  {
-    title: '论文库',
-    link: '/home/library',
-    icon: LibraryBig,
-  },
-  {
-    title: '智能问答',
-    link: '/home/chat',
-    icon: MessagesSquare,
-  },
-  {
-    title: '深度研究',
-    link: '/home/research',
-    icon: FlaskConical,
-  },
-  // 论坛模块已隐藏 - 恢复时取消此注释即可
-  // {
-  //   title: '论坛',
-  //   link: '/home/forum/threads',
-  //   icon: UsersRound,
-  // },
-]
-
-// 管理员专属导航：团队管理
-const adminItems: SidebarItem[] = [
-  {
-    title: '管理团队',
-    link: '/home/team',
-    icon: UsersRound,
-  },
-]
-
-// 按角色动态生成侧边栏：仅 admin 显示「管理团队」，其余角色与改造前完全一致
-export const getSidebarItems = (role?: string | null): SidebarItem[] => {
-  if (role === 'admin') {
-    return [...baseItems, ...adminItems]
-  }
-  return baseItems
-}
-
-export const sidebarItems = getSidebarItems()

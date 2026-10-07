@@ -47,6 +47,7 @@ class TMP_Chat_Request(BaseModel):
 # V2 Ask Mode 请求
 class QARequest(BaseModel):
     question: str
+    project_id: str | None = None
     document_ids: list[str] = Field(default_factory=list)
     model: str = "deepseek"
     mode: str = "ask"  # ask / research / experiment

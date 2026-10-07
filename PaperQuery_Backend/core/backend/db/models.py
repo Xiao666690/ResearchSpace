@@ -10,7 +10,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, Text, func
+from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import column_property
 
 from .database import Base
@@ -144,6 +144,7 @@ class ResearchTask(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     task_id = Column(String(64), unique=True, index=True, nullable=False)
     lid = Column(String(255), index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=True)
     goal = Column(Text, nullable=False)
     mode = Column(String(32), default="research")
     parent_task_id = Column(String(64), index=True, nullable=True)
@@ -186,6 +187,7 @@ class Artifact(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     artifact_id = Column(String(64), unique=True, index=True, nullable=False)
     task_id = Column(String(64), index=True)
+    project_id = Column(String(64), index=True, nullable=True)
     type = Column(String(32))
     title = Column(String(255))
     data_json = Column(Text)
@@ -198,8 +200,191 @@ class ActivityEvent(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     lid = Column(String(255), index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=True)
     event_type = Column(String(32), index=True, nullable=False)
+    target_type = Column(String(32))
+    target_id = Column(String(255))
+    title = Column(String(255))
+    description = Column(Text)
+    metadata_json = Column(Text)
     knowledge_id = Column(String(255))
     document_id = Column(String(255))
     duration_seconds = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.now, index=True, nullable=False)
+
+
+class ResearchProject(Base):
+    __tablename__ = 'research_projects'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(String(64), unique=True, index=True, nullable=False)
+    lid = Column(String(255), index=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    research_goal = Column(Text)
+    status = Column(String(32), nullable=False, default='active')
+    created_by = Column(String(50), nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ProjectDocument(Base):
+    __tablename__ = 'project_documents'
+    __table_args__ = (UniqueConstraint('project_id', 'knowledge_id', 'document_id'),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(String(64), index=True, nullable=False)
+    knowledge_id = Column(String(255), nullable=False)
+    document_id = Column(String(255), nullable=False)
+    added_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ComparisonSession(Base):
+    __tablename__ = 'comparison_sessions'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    question = Column(Text, nullable=False)
+    columns_json = Column(Text, nullable=False)
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ComparisonCell(Base):
+    __tablename__ = 'comparison_cells'
+    __table_args__ = (UniqueConstraint('session_id', 'document_id', 'column_name'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(64), index=True, nullable=False)
+    document_id = Column(String(255), nullable=False)
+    column_name = Column(String(255), nullable=False)
+    value = Column(Text)
+    evidence_document_id = Column(String(255))
+    knowledge_id = Column(String(255))
+    page_number = Column(Integer)
+    chunk_id = Column(String(255))
+    confidence = Column(String(32))
+
+
+class ResearchClaim(Base):
+    __tablename__ = 'research_claims'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    claim_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    status = Column(String(32), nullable=False, default='draft')
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ClaimEvidence(Base):
+    __tablename__ = 'claim_evidence'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    evidence_id = Column(String(64), unique=True, index=True, nullable=False)
+    claim_id = Column(String(64), index=True, nullable=False)
+    knowledge_id = Column(String(255), nullable=False)
+    document_id = Column(String(255), nullable=False)
+    page_number = Column(Integer, nullable=False)
+    chunk_id = Column(String(255), nullable=False)
+    evidence_text = Column(Text, nullable=False)
+    stance = Column(String(32), nullable=False)
+    confidence = Column(String(32), nullable=False, default='verified')
+
+
+class ResearchEntity(Base):
+    __tablename__ = 'research_entities'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    entity_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    entity_type = Column(String(32), nullable=False)
+    name = Column(String(255), nullable=False)
+    normalized_name = Column(String(255), nullable=False)
+    knowledge_id = Column(String(255))
+    document_id = Column(String(255))
+    page_number = Column(Integer)
+    chunk_id = Column(String(255))
+    confidence = Column(String(32), nullable=False, default='unverified')
+
+
+class ResearchRelation(Base):
+    __tablename__ = 'research_relations'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    relation_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    source_entity_id = Column(String(64), nullable=False)
+    target_entity_id = Column(String(64), nullable=False)
+    relation_type = Column(String(32), nullable=False)
+    knowledge_id = Column(String(255))
+    document_id = Column(String(255))
+    page_number = Column(Integer)
+    chunk_id = Column(String(255))
+    confidence = Column(String(32), nullable=False, default='unverified')
+
+
+class GraphBuildRun(Base):
+    __tablename__ = 'graph_build_runs'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    run_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    status = Column(String(32), nullable=False)
+    error = Column(Text)
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class StudioDocument(Base):
+    __tablename__ = 'studio_documents'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    studio_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    document_type = Column(String(32), nullable=False, default='note')
+    content_markdown = Column(Text, nullable=False, default='')
+    created_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class StudioCitation(Base):
+    __tablename__ = 'studio_citations'
+    __table_args__ = (UniqueConstraint('studio_id', 'citation_key'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    studio_id = Column(String(64), index=True, nullable=False)
+    citation_key = Column(String(32), nullable=False)
+    source_document_id = Column(String(255), nullable=False)
+    knowledge_id = Column(String(255), nullable=False)
+    page_number = Column(Integer, nullable=False)
+    chunk_id = Column(String(255), nullable=False)
+
+
+class ProjectMember(Base):
+    __tablename__ = 'project_members'
+    __table_args__ = (UniqueConstraint('project_id', 'username'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(String(64), index=True, nullable=False)
+    username = Column(String(50), nullable=False)
+    role = Column(String(16), nullable=False, default='EDITOR')
+    joined_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ResearchComment(Base):
+    __tablename__ = 'research_comments'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    comment_id = Column(String(64), unique=True, index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=False)
+    username = Column(String(50), nullable=False)
+    target_type = Column(String(32), nullable=False)
+    target_id = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class TaskAssignment(Base):
+    __tablename__ = 'task_assignments'
+    __table_args__ = (UniqueConstraint('task_id', 'username'),)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    task_id = Column(String(64), index=True, nullable=False)
+    username = Column(String(50), nullable=False)
+    assigned_at = Column(TIMESTAMP, server_default=func.now())

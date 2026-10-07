@@ -6,6 +6,7 @@ export interface CitationItem {
   knowledgeID?: string
   page: number
   chunk_id: string
+  quote?: string
 }
 
 export interface ExternalPaper {
@@ -58,6 +59,7 @@ export async function askQuestionStream(
   onCitations: (citations: CitationItem[]) => void,
   onSearchStatus: (progress: SearchProgress) => void,
   onExternalPapers: (result: ExternalPaperResult) => void,
+  projectId?: string,
 ): Promise<void> {
   const token = localStorage.getItem('token')
   const baseUrl = import.meta.env.VITE_API_BASE_URL
@@ -69,6 +71,7 @@ export async function askQuestionStream(
     },
     body: JSON.stringify({
       question,
+      project_id: projectId || null,
       document_ids: documentIds,
       model,
       mode: 'ask',
@@ -76,7 +79,8 @@ export async function askQuestionStream(
     }),
   })
   if (!res.ok) {
-    throw new Error(`请求失败：HTTP ${res.status}`)
+    const error = await res.json().catch(() => null)
+    throw new Error(error?.detail || `请求失败：HTTP ${res.status}`)
   }
   await consumeSSE(res, (evt) => {
     if (evt.event === 'delta') {

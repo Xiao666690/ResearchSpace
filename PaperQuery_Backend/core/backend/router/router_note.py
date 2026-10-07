@@ -5,7 +5,8 @@ from core.backend.crud.crud_note import get_note, update_note
 from core.backend.schema.noteschema import NoteQuery, NoteRequest, NoteUpdate,NoteUpdateRequest
 from core.backend.utils.utils import *
 from core.backend.router.dependencies import get_db
-from core.backend.db.models import Document, Note
+from core.backend.db.models import Document, Note, ProjectDocument, ResearchProject
+from core.backend.services.event_service import emit_event
 from fastapi import HTTPException
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 router = APIRouter()
@@ -54,6 +55,16 @@ async def update_current_note(noteUpdateRequest:NoteUpdateRequest,token:str=Depe
     request_data = NoteQuery(knowledgeID=noteUpdateRequest.knowledgeID, lid=user.workspace_lid, uid=noteUpdateRequest.documentID)
     if not get_note(db, request_data):
         db.add(Note(knowledgeID=noteUpdateRequest.knowledgeID, lid=user.workspace_lid, uid=noteUpdateRequest.documentID, note=noteUpdateRequest.note))
+        project_ids = [row.project_id for row in db.query(ProjectDocument).join(
+            ResearchProject, ResearchProject.project_id == ProjectDocument.project_id).filter(
+            ProjectDocument.knowledge_id == document.knowledgeID,
+            ProjectDocument.document_id == document.uid,
+            ResearchProject.lid == user.workspace_lid,
+            ResearchProject.status == 'active').all()]
+        for project_id in project_ids:
+            emit_event(db, lid=user.workspace_lid, project_id=project_id, event_type='NOTE_UPDATED',
+                       target_type='document', target_id=document.uid, title=document.documentName,
+                       metadata={'knowledge_id': document.knowledgeID})
         db.commit()
         return {"status_code": 200, "msg": "update note successfully"}
     #更新笔记
@@ -64,6 +75,16 @@ async def update_current_note(noteUpdateRequest:NoteUpdateRequest,token:str=Depe
         note=noteUpdateRequest.note
     )
     update_note(db,updateQueryData)
+    project_ids = [row.project_id for row in db.query(ProjectDocument).join(
+        ResearchProject, ResearchProject.project_id == ProjectDocument.project_id).filter(
+        ProjectDocument.knowledge_id == document.knowledgeID,
+        ProjectDocument.document_id == document.uid,
+        ResearchProject.lid == user.workspace_lid,
+        ResearchProject.status == 'active').all()]
+    for project_id in project_ids:
+        emit_event(db, lid=user.workspace_lid, project_id=project_id, event_type='NOTE_UPDATED',
+                   target_type='document', target_id=document.uid, title=document.documentName,
+                   metadata={'knowledge_id': document.knowledgeID})
     db.commit()
     #响应
     

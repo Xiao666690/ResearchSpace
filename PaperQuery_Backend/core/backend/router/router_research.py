@@ -22,6 +22,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from core.backend.crud.crud_user import query_user
 from core.backend.db.models import Artifact, Document, ResearchStep, ResearchTask
 from core.backend.utils.utils import attach_workspace_lid, get_db
+from core.backend.services.project_service import (get_project_or_404, project_documents,
+                                                   resolve_project_document_ids, require_parent_project)
+from core.backend.services.event_service import emit_event
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 router = APIRouter()
@@ -43,6 +46,7 @@ def _get_user(token: str, db: Session):
 
 
 class ResearchTaskCreate(BaseModel):
+    project_id: str | None = None
     goal: str
     mode: str = "research"
     document_ids: list[str] = Field(default_factory=list)
@@ -189,10 +193,15 @@ def _run_research_task(task_id: str, planning_goal: str, allowed_ids: list[str],
                     safe_artifact["artifact_id"] = artifact_id
                     session.add(Artifact(
                         artifact_id=artifact_id, task_id=task_id,
+                        project_id=task.project_id,
                         type=safe_artifact.get("type", ""), title=safe_artifact.get("title", ""),
                         data_json=_json_dumps(safe_artifact),
                     ))
                 task.status = state.status
+                if task.project_id:
+                    emit_event(session, lid=task.lid, project_id=task.project_id,
+                               event_type='TASK_COMPLETED' if state.status == 'SUCCESS' else 'TASK_FAILED',
+                               target_type='task', target_id=task_id, title=task.goal[:255])
                 task.updated_at = _utc_now()
                 session.commit()
         except Exception as exc:
@@ -202,6 +211,10 @@ def _run_research_task(task_id: str, planning_goal: str, allowed_ids: list[str],
                 if task:
                     task.status = "FAILED"
                     task.updated_at = _utc_now()
+                    if task.project_id:
+                        emit_event(session, lid=task.lid, project_id=task.project_id,
+                                   event_type='TASK_FAILED', target_type='task',
+                                   target_id=task_id, title=task.goal[:255])
                     session.add(ResearchStep(
                         step_id="system_error", task_id=task_id, skill_name="research",
                         status="FAILED", error=str(exc)[:1200], duration_ms=0,
@@ -225,12 +238,18 @@ def create_task(
     owned_ids = {
         row.uid for row in db.query(Document.uid).filter(Document.lid == user.workspace_lid).all()
     }
-    if req.document_ids and not set(req.document_ids).issubset(owned_ids):
-        raise HTTPException(status_code=403, detail="部分论文不在当前账号的资料库中")
-    allowed_ids = list(dict.fromkeys(req.document_ids)) if req.document_ids else list(owned_ids)
+    if req.project_id:
+        project = get_project_or_404(db, req.project_id, user)
+        allowed_ids = resolve_project_document_ids(db, project, req.document_ids)
+    else:
+        if req.document_ids and not set(req.document_ids).issubset(owned_ids):
+            raise HTTPException(status_code=403, detail="部分论文不在当前研究范围中")
+        allowed_ids = list(dict.fromkeys(req.document_ids)) if req.document_ids else sorted(owned_ids)
+    document_rows = ([doc for _, doc in project_documents(db, project)] if req.project_id else
+                     db.query(Document).filter(Document.lid == user.workspace_lid).all())
     available_documents = [
         {"document_id": row.uid, "title": row.documentName}
-        for row in db.query(Document.uid, Document.documentName).filter(Document.lid == user.workspace_lid).all()
+        for row in document_rows
         if row.uid in allowed_ids
     ]
 
@@ -240,6 +259,7 @@ def create_task(
         parent = db.query(ResearchTask).filter(ResearchTask.task_id == req.parent_task_id, ResearchTask.lid == user.workspace_lid).first()
         if parent is None:
             raise HTTPException(status_code=404, detail="上一轮研究任务不存在")
+        require_parent_project(parent, req.project_id)
         prior_artifacts = [json.loads(item.data_json) for item in db.query(Artifact).filter(Artifact.task_id == parent.task_id).all() if item.data_json]
     prior_digest = "\n".join(f"- {item.get('title', '')}: {str(item.get('markdown') or item.get('report') or item.get('papers') or item.get('raw') or '')[:500]}" for item in prior_artifacts[:4])
     planning_goal = req.goal if not parent else f"{req.goal}\n\n上一轮研究目标：{parent.goal}\n上一轮结果：\n{prior_digest[:1800]}"
@@ -248,6 +268,7 @@ def create_task(
     task = ResearchTask(
         task_id=task_id,
         lid=user.workspace_lid,
+        project_id=req.project_id,
         goal=req.goal,
         mode=req.mode,
         parent_task_id=req.parent_task_id,
@@ -255,6 +276,10 @@ def create_task(
     )
     try:
         db.add(task)
+        if req.project_id:
+            emit_event(db, lid=user.workspace_lid, project_id=req.project_id,
+                       event_type='TASK_CREATED', target_type='task',
+                       target_id=task_id, title=req.goal[:255])
 
         db.commit()
     except Exception as exc:
@@ -276,22 +301,24 @@ def create_task(
 
 @router.get("/research/tasks")
 def list_tasks(
+    project_id: str | None = None,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ):
     user = _get_user(token, db)
-    tasks = (
-        db.query(ResearchTask)
-        .filter(ResearchTask.lid == user.workspace_lid)
-        .order_by(ResearchTask.created_at.desc())
-        .all()
-    )
+    if project_id:
+        get_project_or_404(db, project_id, user)
+    query = db.query(ResearchTask).filter(ResearchTask.lid == user.workspace_lid)
+    if project_id:
+        query = query.filter(ResearchTask.project_id == project_id)
+    tasks = query.order_by(ResearchTask.created_at.desc()).all()
     return {
         "status_code": 200,
         "msg": "ok",
         "data": [
             {
                 "task_id": t.task_id,
+                "project_id": t.project_id,
                 "goal": t.goal,
                 "status": t.status,
                 "mode": t.mode,
@@ -316,6 +343,8 @@ def get_task(
     ).first()
     if task is None:
         return {"status_code": 404, "msg": "任务不存在"}
+    if task.project_id:
+        get_project_or_404(db, task.project_id, user)
     steps = db.query(ResearchStep).filter(ResearchStep.task_id == task_id).all()
     artifacts = db.query(Artifact).filter(Artifact.task_id == task_id).all()
     return {
@@ -323,6 +352,7 @@ def get_task(
         "msg": "ok",
         "data": {
             "task_id": task.task_id,
+            "project_id": task.project_id,
             "goal": task.goal,
             "status": task.status,
             "parent_task_id": task.parent_task_id,

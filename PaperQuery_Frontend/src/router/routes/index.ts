@@ -72,6 +72,23 @@ const routes: Array<RouteRecordRaw> = [
         name: 'research',
         component: () => import('@/views/research/ResearchView.vue'),
       },
+      { path: 'projects', name: 'projects', component: () => import('@/views/projects/ProjectListView.vue') },
+      {
+        path: 'projects/:projectId', component: () => import('@/views/projects/ProjectLayout.vue'),
+        children: [
+          { path: '', redirect: to => `${to.path}/overview` },
+          { path: 'overview', component: () => import('@/views/projects/ProjectOverviewView.vue') },
+          { path: 'library', component: () => import('@/views/projects/ProjectLibraryView.vue') },
+          { path: 'chat', component: () => import('@/views/chat/chat.vue') },
+          { path: 'research', component: () => import('@/views/research/ResearchView.vue') },
+          { path: 'timeline', component: () => import('@/views/timeline/ResearchTimelineView.vue') },
+          { path: 'compare', component: () => import('@/views/compare/CompareLabView.vue') },
+          { path: 'evidence', component: () => import('@/views/evidence/EvidenceBoardView.vue') },
+          { path: 'studio', component: () => import('@/views/studio/ResearchStudioView.vue') },
+          { path: 'map', component: () => import('@/views/research-map/ResearchMapView.vue') },
+          { path: 'collaboration', component: () => import('@/views/collaboration/CollaborationView.vue') },
+        ],
+      },
       // 团队管理：仅 admin 可进入（路由守卫见 router/index.ts）
       {
         path: 'team',

@@ -18,6 +18,8 @@ from core.backend.db.models import ActivityEvent, Document, TMPDocument
 from core.backend.router.dependencies import get_db
 from core.backend.utils.utils import get_current_user
 from core.backend.router.req_res_schema import QARequest
+from core.backend.services.project_service import get_project_or_404, project_documents, resolve_project_document_ids
+from core.backend.services.event_service import emit_event
 from core.decision.engine import DecisionEngine
 from core.decision.external_search import (
     classify_external_request,
@@ -90,38 +92,45 @@ def qa_stream(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if qa.project_id:
+        project = get_project_or_404(db, qa.project_id, user)
+        qa.document_ids = resolve_project_document_ids(db, project, qa.document_ids)
     selected_papers = []
     if qa.document_ids:
         selected_ids = set(qa.document_ids)
-        owned_papers = {
-            row.uid: row for row in db.query(Document).filter(
-                Document.lid == user.workspace_lid, Document.uid.in_(selected_ids)
-            ).all()
-        }
-        owned_papers.update(
-            (row.uid, row) for row in db.query(TMPDocument).filter(
-                TMPDocument.lid == user.workspace_lid, TMPDocument.uid.in_(selected_ids)
-            ).all()
-        )
+        if qa.project_id:
+            owned_papers = {doc.uid: doc for _, doc in project_documents(db, project, document_ids=selected_ids)}
+        else:
+            owned_papers = {
+                row.uid: row for row in db.query(Document).filter(
+                    Document.lid == user.workspace_lid, Document.uid.in_(selected_ids)
+                ).all()
+            }
+            owned_papers.update(
+                (row.uid, row) for row in db.query(TMPDocument).filter(
+                    TMPDocument.lid == user.workspace_lid, TMPDocument.uid.in_(selected_ids)
+                ).all()
+            )
         if not selected_ids.issubset(owned_papers):
             raise HTTPException(status_code=403, detail="部分论文不在当前账号的资料库中")
         selected_papers = [owned_papers[document_id] for document_id in dict.fromkeys(qa.document_ids)]
     selected_names = [paper.documentName for paper in selected_papers]
     selected_paper_text = "、".join(selected_names) if selected_names else "无"
 
+    agent = getattr(request.app, "chat_agents", {}).get(qa.model)
+    if agent is None:
+        raise HTTPException(status_code=400, detail=f"模型 {qa.model} 未配置或不可用")
+
     # Count submitted Ask requests for this account. The event contains no question text.
-    db.add(ActivityEvent(lid=user.workspace_lid, event_type="ask"))
+    db.add(ActivityEvent(lid=user.workspace_lid, project_id=qa.project_id, event_type="ask"))
+    if qa.project_id:
+        emit_event(db, lid=user.workspace_lid, project_id=qa.project_id,
+                   event_type='QUESTION_ASKED', target_type='question',
+                   title=qa.question[:255])
     db.commit()
 
     trace_id = uuid.uuid4().hex[:12]
-    agent = getattr(request.app, "chat_agents", {}).get(qa.model)
-    if agent is None:
-        agent = getattr(request.app, "chat_agents", {}).get("deepseek")
-    decision_engine = (
-        DecisionEngine(agent.get_llm())
-        if agent is not None
-        else getattr(request.app, "decision_engine", None)
-    )
+    decision_engine = DecisionEngine(agent.get_llm())
     chroma_db = getattr(request.app, "chroma_db", None)
 
     def generate():
@@ -328,6 +337,7 @@ def qa_stream(
                             "knowledgeID": c.knowledge_id,
                             "page": c.page_number,
                             "chunk_id": c.chunk_id,
+                            "quote": c.quote,
                         }
                         for c in build_citations(citation_map)
                     ]
@@ -369,6 +379,7 @@ def qa_stream(
                     "knowledgeID": c.knowledge_id,
                     "page": c.page_number,
                     "chunk_id": c.chunk_id,
+                    "quote": c.quote,
                 }
                 for c in citations
             ]

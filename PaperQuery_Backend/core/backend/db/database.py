@@ -1,12 +1,15 @@
 # @File : database.py
 import os
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DB_PATH=os.getenv("DB_PATH")
-print(DB_PATH)
+DB_PATH = os.getenv('DB_PATH')
+if not DB_PATH:
+    raise RuntimeError('DB_PATH is required; configure PaperQuery_Backend/.env before starting the API')
+Path(DB_PATH).expanduser().parent.mkdir(parents=True, exist_ok=True)
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(

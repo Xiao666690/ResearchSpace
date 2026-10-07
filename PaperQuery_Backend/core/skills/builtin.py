@@ -1,6 +1,9 @@
 """内置 Research Skills（首版）。"""
 from __future__ import annotations
 
+import json
+import re
+
 from pydantic import BaseModel, Field
 
 from core.skills.base import BaseSkill, SkillResult
@@ -83,13 +86,20 @@ class PaperCompareSkill(BaseSkill):
             return SkillResult(ok=False, error_code="NO_LLM", error_message="LLM 未初始化")
         columns = data.columns or ["论文", "方法", "数据集", "指标"]
         prompt = (
-            "你是一个论文对比助手。请根据以下上下文，生成一个 JSON 对比表。\n"
+            "你是论文对比助手。只根据提供的带 chunk_id 的原文证据输出 JSON，不能猜测。"
+            "每个单元格格式为 {value: 字符串, chunk_id: 证据 ID 或 null}；没有证据时 value 写“未验证”。\n"
             f"对比问题：{data.question}\n"
             f"对比列：{columns}\n"
             f"上下文：{data.context}\n"
-            "输出 JSON：{\"columns\": [...], \"rows\": [{\"论文\": ..., ...}]}"
+            '输出 JSON：{"columns": [...], "rows": [{"document_id": "...", "cells": {"方法": {"value": "...", "chunk_id": "..."}}}]} '
         )
         resp = llm.invoke(prompt)
         text = resp.content if hasattr(resp, "content") else str(resp)
-        artifact = {"type": "comparison_table", "title": data.question, "raw": text}
-        return SkillResult(ok=True, output={"comparison": text}, artifacts=[artifact])
+        try:
+            comparison = json.loads(re.sub(r'^\s*```(?:json)?\s*|\s*```\s*$', '', text.strip(), flags=re.I))
+            if not isinstance(comparison.get('rows'), list) or not isinstance(comparison.get('columns'), list):
+                raise ValueError('invalid comparison table')
+        except (ValueError, TypeError, AttributeError):
+            return SkillResult(ok=False, error_code='PARSE_ERROR', error_message='比较结果不是有效的结构化 JSON')
+        artifact = {"type": "comparison_table", "title": data.question, **comparison}
+        return SkillResult(ok=True, output={"comparison": comparison}, artifacts=[artifact])

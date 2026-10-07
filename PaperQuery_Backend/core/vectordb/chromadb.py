@@ -68,12 +68,24 @@ class AcadeChroma:
             query_str, k=k, filter=filter
         )
         chunks: list[EvidenceChunk] = []
-        for index, (doc, score) in enumerate(docs_scores):
+        indexed_chunks: dict[str, list[EvidenceChunk]] = {}
+        for doc, score in docs_scores:
             m = doc.metadata or {}
             document_id = m.get("documentID") or m.get("document_id") or ""
             page_number = m.get("page_number", 0)
+            stable_id = m.get("chunk_id") or getattr(doc, "id", None)
+            if not stable_id and document_id:
+                if document_id not in indexed_chunks:
+                    indexed_chunks[document_id] = self.get_document_chunks(document_id)
+                source = next((item for item in indexed_chunks[document_id]
+                               if item.page_number == int(page_number or 0)
+                               and item.text == doc.page_content
+                               and item.knowledge_id == (m.get("knowledge_name") or m.get("knowledgeID"))), None)
+                stable_id = source.chunk_id if source else None
+            if not stable_id:
+                continue
             chunks.append(EvidenceChunk(
-                chunk_id=m.get("chunk_id") or str(getattr(doc, "id", "") or f"{document_id}:p{page_number}:{index}"),
+                chunk_id=stable_id,
                 document_id=document_id,
                 knowledge_id=m.get("knowledge_name") or m.get("knowledgeID"),
                 source=m.get("source", ""),
@@ -82,6 +94,25 @@ class AcadeChroma:
                 dense_score=float(score),
             ))
         return chunks
+
+    def get_document_chunks(self, document_id: str) -> list[EvidenceChunk]:
+        """Read indexed chunks in page order with stable Chroma record IDs."""
+        stored = self.chroma_db_layer1._collection.get(
+            where={'documentID': document_id}, include=['documents', 'metadatas'])
+        rows = []
+        for record_id, text, metadata in zip(stored.get('ids') or [],
+                                             stored.get('documents') or [],
+                                             stored.get('metadatas') or []):
+            if not text:
+                continue
+            meta = metadata or {}
+            rows.append(EvidenceChunk(
+                chunk_id=meta.get('chunk_id') or record_id,
+                document_id=document_id,
+                knowledge_id=meta.get('knowledge_name') or meta.get('knowledgeID'),
+                source=meta.get('source', ''),
+                page_number=int(meta.get('page_number', 0) or 0), text=text))
+        return sorted(rows, key=lambda item: item.page_number)
 
     def get_opening_evidence(self, document_ids: list[str]) -> list[EvidenceChunk]:
         """Return the opening PDF chunks for a paper overview question.

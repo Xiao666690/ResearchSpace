@@ -9,13 +9,11 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
 from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
 from langchain_core.embeddings import Embeddings
 
 from core.agent.chatAgent import ChatAgent
-from core.backend.db.database import SessionLocal, engine
-from core.backend.db.models import Base
+from core.backend.db.database import SessionLocal
 from core.backend.router import (
     router_document,
     router_knowledge,
@@ -30,21 +28,18 @@ from core.backend.router import (
     router_system,
     router_dashboard,
     router_team,
+    router_project,
+    router_timeline,
+    router_compare,
+    router_evidence_board,
+    router_graph,
+    router_studio,
+    router_collaboration,
 )
 from core.common.config import settings
 from core.decision.engine import DecisionEngine
 from core.llm.LLM import LLM
 from core.vectordb.chromadb import AcadeChroma
-
-
-Base.metadata.create_all(bind=engine)
-with engine.begin() as connection:
-    if "role" not in {row[1] for row in connection.execute(text("PRAGMA table_info(users)"))}:
-        connection.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(16) NOT NULL DEFAULT 'user'"))
-    if "category" not in {row[1] for row in connection.execute(text("PRAGMA table_info(posts)"))}:
-        connection.execute(text("ALTER TABLE posts ADD COLUMN category VARCHAR(20) NOT NULL DEFAULT '技术'"))
-    if "parent_task_id" not in {row[1] for row in connection.execute(text("PRAGMA table_info(research_tasks)"))}:
-        connection.execute(text("ALTER TABLE research_tasks ADD COLUMN parent_task_id VARCHAR(64)"))
 
 
 def _init_role_and_default_team():
@@ -200,9 +195,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PaperAgent API",
+    title="ResearchSpace API",
     version="2.0.0",
-    description="PaperAgent 论文问答、知识库与深度研究 API",
+    description="ResearchSpace 研究项目、论文证据与协作 API",
     lifespan=lifespan,
 )
 app.add_middleware(
@@ -227,6 +222,13 @@ app.include_router(router_qa.router, tags=["router_qa"])
 app.include_router(router_research.router, tags=["router_research"])
 app.include_router(router_system.router, tags=["system"])
 app.include_router(router_dashboard.router, tags=["dashboard"])
+app.include_router(router_project.router)
+app.include_router(router_timeline.router)
+app.include_router(router_compare.router)
+app.include_router(router_evidence_board.router)
+app.include_router(router_graph.router)
+app.include_router(router_studio.router)
+app.include_router(router_collaboration.router)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

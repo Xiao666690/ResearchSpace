@@ -2,6 +2,7 @@ import api from '@/api/api'
 
 // 只创建持久化任务；研究在后端继续执行，通过查询接口读取进度。
 export const createResearchTask = async (
+  projectId: string | null,
   goal: string,
   mode = 'research',
   documentIds: string[] = [],
@@ -10,7 +11,7 @@ export const createResearchTask = async (
   const token = localStorage.getItem('token')
   const resp = await api.post(
     '/research/tasks',
-    { goal, mode, document_ids: documentIds, parent_task_id: parentTaskId },
+    { project_id: projectId, goal, mode, document_ids: documentIds, parent_task_id: parentTaskId },
     {
       headers: { Authorization: `Bearer ${token}` },
       timeout: 20000,
@@ -20,10 +21,11 @@ export const createResearchTask = async (
 }
 
 // 任务列表
-export const listResearchTasks = async () => {
+export const listResearchTasks = async (projectId?: string) => {
   const token = localStorage.getItem('token')
   const resp = await api.get('/research/tasks', {
     headers: { Authorization: `Bearer ${token}` },
+    params: projectId ? { project_id: projectId } : {},
   })
   return resp.data
 }

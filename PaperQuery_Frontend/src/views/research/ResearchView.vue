@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import {
   ArrowUpRight,
@@ -21,6 +22,9 @@ import {
   getResearchTask,
 } from '@/api/research'
 import ArtifactPanel from './components/ArtifactPanel.vue'
+
+const route = useRoute()
+const projectId = computed(() => typeof route.params.projectId === 'string' ? route.params.projectId : undefined)
 
 interface TaskItem {
   task_id: string
@@ -118,7 +122,7 @@ const getErrorMessage = (error: any, fallback: string) =>
 
 const loadTasks = async () => {
   try {
-    const resp = await listResearchTasks()
+    const resp = await listResearchTasks(projectId.value)
     if (resp?.data) {
       tasks.value = resp.data
       if (!currentTask.value && tasks.value.length > 0) {
@@ -134,7 +138,7 @@ const handleCreate = async () => {
   if (!goal.value.trim()) return
   creating.value = true
   try {
-    const resp = await createResearchTask(goal.value.trim(), 'research', [], parentTaskId.value || undefined)
+    const resp = await createResearchTask(projectId.value || null, goal.value.trim(), 'research', [], parentTaskId.value || undefined)
     if (resp?.data) {
       ElNotification.success(`任务已创建：${resp.data.task_id}`)
       goal.value = ''

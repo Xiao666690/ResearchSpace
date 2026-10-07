@@ -9,7 +9,10 @@
 **/node_modules/
 **/dist/
 **/.npm_cache/
+**/.npm-cache/
 **/.pip_cache/
+**/.pip-cache/
+**/.pydeps/
 **/*.pyc
 **/*.log
 **/*.db
@@ -33,3 +36,4 @@ PaperQuery_Backend/res/
 PaperQuery_Backend/competition_eval/
 PaperQuery_Backend/eval/
 PaperQuery_Frontend/tsconfig.web.tsbuildinfo
+PaperQuery_Frontend/.eslintrc-auto-import.json

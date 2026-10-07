@@ -1,5 +1,5 @@
 # 获取知识所拥有的所有文档
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -16,9 +16,12 @@ router = APIRouter()
 
 
 def get_chat_agent(request: Request, model: str):
-    """根据模型名称获取对应的 ChatAgent，默认使用 deepseek"""
+    """根据模型名称获取已配置的 ChatAgent。"""
     agents = request.app.chat_agents
-    return agents.get(model, agents['deepseek'])
+    agent = agents.get(model)
+    if agent is None:
+        raise HTTPException(status_code=400, detail=f"模型 {model} 未配置或不可用")
+    return agent
 
 
 ## 聊天对话
