@@ -41,6 +41,15 @@ if ($missing.Count -gt 0) {
     exit 1
 }
 
+# Upgrade the SQLite schema before any backend process opens it.
+Push-Location $bk
+try {
+    & $py -m alembic upgrade head
+    if ($LASTEXITCODE -ne 0) { throw "数据库迁移失败，已停止启动" }
+} finally {
+    Pop-Location
+}
+
 # ---- 端口占用检测 ----
 function Test-PortInUse([int]$Port) {
     $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue

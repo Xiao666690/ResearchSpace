@@ -72,6 +72,15 @@ const routes: Array<RouteRecordRaw> = [
         name: 'research',
         component: () => import('@/views/research/ResearchView.vue'),
       },
+      { path: 'projects', name: 'projects', component: () => import('@/views/projects/ProjectListView.vue') },
+      {
+        path: 'projects/:projectId', component: () => import('@/views/projects/ProjectLayout.vue'),
+        children: [
+          { path: '', redirect: to => `${to.path}/overview` },
+          { path: 'overview', component: () => import('@/views/projects/ProjectOverviewView.vue') },
+          { path: 'library', component: () => import('@/views/projects/ProjectLibraryView.vue') },
+        ],
+      },
       // 团队管理：仅 admin 可进入（路由守卫见 router/index.ts）
       {
         path: 'team',

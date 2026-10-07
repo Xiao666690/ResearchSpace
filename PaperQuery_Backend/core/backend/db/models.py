@@ -10,7 +10,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, Text, func
+from sqlalchemy import TIMESTAMP, Column, DateTime, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import column_property
 
 from .database import Base
@@ -144,6 +144,7 @@ class ResearchTask(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     task_id = Column(String(64), unique=True, index=True, nullable=False)
     lid = Column(String(255), index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=True)
     goal = Column(Text, nullable=False)
     mode = Column(String(32), default="research")
     parent_task_id = Column(String(64), index=True, nullable=True)
@@ -186,6 +187,7 @@ class Artifact(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     artifact_id = Column(String(64), unique=True, index=True, nullable=False)
     task_id = Column(String(64), index=True)
+    project_id = Column(String(64), index=True, nullable=True)
     type = Column(String(32))
     title = Column(String(255))
     data_json = Column(Text)
@@ -198,8 +200,40 @@ class ActivityEvent(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     lid = Column(String(255), index=True, nullable=False)
+    project_id = Column(String(64), index=True, nullable=True)
     event_type = Column(String(32), index=True, nullable=False)
+    target_type = Column(String(32))
+    target_id = Column(String(255))
+    title = Column(String(255))
+    description = Column(Text)
+    metadata_json = Column(Text)
     knowledge_id = Column(String(255))
     document_id = Column(String(255))
     duration_seconds = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.now, index=True, nullable=False)
+
+
+class ResearchProject(Base):
+    __tablename__ = 'research_projects'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(String(64), unique=True, index=True, nullable=False)
+    lid = Column(String(255), index=True, nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    research_goal = Column(Text)
+    status = Column(String(32), nullable=False, default='active')
+    created_by = Column(String(50), nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class ProjectDocument(Base):
+    __tablename__ = 'project_documents'
+    __table_args__ = (UniqueConstraint('project_id', 'knowledge_id', 'document_id'),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(String(64), index=True, nullable=False)
+    knowledge_id = Column(String(255), nullable=False)
+    document_id = Column(String(255), nullable=False)
+    added_by = Column(String(50))
+    created_at = Column(TIMESTAMP, server_default=func.now())
