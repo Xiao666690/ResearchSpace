@@ -68,12 +68,24 @@ class AcadeChroma:
             query_str, k=k, filter=filter
         )
         chunks: list[EvidenceChunk] = []
-        for index, (doc, score) in enumerate(docs_scores):
+        indexed_chunks: dict[str, list[EvidenceChunk]] = {}
+        for doc, score in docs_scores:
             m = doc.metadata or {}
             document_id = m.get("documentID") or m.get("document_id") or ""
             page_number = m.get("page_number", 0)
+            stable_id = m.get("chunk_id") or getattr(doc, "id", None)
+            if not stable_id and document_id:
+                if document_id not in indexed_chunks:
+                    indexed_chunks[document_id] = self.get_document_chunks(document_id)
+                source = next((item for item in indexed_chunks[document_id]
+                               if item.page_number == int(page_number or 0)
+                               and item.text == doc.page_content
+                               and item.knowledge_id == (m.get("knowledge_name") or m.get("knowledgeID"))), None)
+                stable_id = source.chunk_id if source else None
+            if not stable_id:
+                continue
             chunks.append(EvidenceChunk(
-                chunk_id=m.get("chunk_id") or str(getattr(doc, "id", "") or f"{document_id}:p{page_number}:{index}"),
+                chunk_id=stable_id,
                 document_id=document_id,
                 knowledge_id=m.get("knowledge_name") or m.get("knowledgeID"),
                 source=m.get("source", ""),

@@ -62,9 +62,9 @@ def test_project_modules_and_source_links(tmp_path):
             User(username='alice', password='x', lid='workspace'),
             User(username='bob', password='x', lid='workspace'),
             Document(uid='paper-a', knowledgeID='lib', lid='workspace',
-                     documentName='Paper A', documentPath='/a.pdf', documentStatus=1),
+                     documentName='Paper A', documentPath='/a.pdf', documentStatus=2),
             Document(uid='paper-b', knowledgeID='lib', lid='workspace',
-                     documentName='Paper B', documentPath='/b.pdf', documentStatus=1),
+                     documentName='Paper B', documentPath='/b.pdf', documentStatus=2),
         ])
         db.commit()
     app = FastAPI()

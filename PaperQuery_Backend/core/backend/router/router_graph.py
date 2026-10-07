@@ -30,7 +30,7 @@ def start_build(project_id: str, background_tasks: BackgroundTasks, request: Req
     if chroma is None or provider is None:
         raise HTTPException(503, '图谱所需的模型或索引未就绪')
     for link, doc in links:
-        if doc.documentStatus != 1 or not any(chunk.knowledge_id == link.knowledge_id
+        if doc.documentStatus != 2 or not any(chunk.knowledge_id == link.knowledge_id
                                                for chunk in chroma.get_document_chunks(doc.uid)):
             raise HTTPException(422, f'论文 {doc.documentName} 尚未完成索引')
     current = db.query(GraphBuildRun).filter(GraphBuildRun.project_id == project_id,
