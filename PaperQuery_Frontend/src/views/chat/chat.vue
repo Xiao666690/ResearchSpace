@@ -19,12 +19,19 @@ import Content from './content/ContentView.vue'
 import SideBar from './sidebar/SideBar.vue'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useMessageListStore } from '@/stores/messageList'
 import { useChatHistoryStore } from '@/stores/chatHistory'
 
+const route = useRoute()
 onMounted(() => {
-  // Each project gets its own saved conversations and model memory.
-  useMessageListStore().clearMessages()
-  useChatHistoryStore().loadFromStorage()
+  const history = useChatHistoryStore()
+  const scope = typeof route.params.projectId === 'string' ? route.params.projectId : 'workspace'
+  if (history.state.activeScope !== scope) {
+    // Preserve the current conversation when returning to the same scope.
+    useMessageListStore().clearMessages()
+    history.loadFromStorage()
+    history.state.activeScope = scope
+  }
 })
 </script>

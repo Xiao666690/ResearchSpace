@@ -37,6 +37,7 @@ export const useChatHistoryStore = defineStore('chatHistory', () => {
   const state = reactive({
     sessions: <ChatSession[]>[],
     currentSessionId: '',
+    activeScope: '',
   })
 
   function loadFromStorage() {
