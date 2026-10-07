@@ -117,6 +117,10 @@ def qa_stream(
     selected_names = [paper.documentName for paper in selected_papers]
     selected_paper_text = "、".join(selected_names) if selected_names else "无"
 
+    agent = getattr(request.app, "chat_agents", {}).get(qa.model)
+    if agent is None:
+        raise HTTPException(status_code=400, detail=f"模型 {qa.model} 未配置或不可用")
+
     # Count submitted Ask requests for this account. The event contains no question text.
     db.add(ActivityEvent(lid=user.workspace_lid, project_id=qa.project_id, event_type="ask"))
     if qa.project_id:
@@ -126,14 +130,7 @@ def qa_stream(
     db.commit()
 
     trace_id = uuid.uuid4().hex[:12]
-    agent = getattr(request.app, "chat_agents", {}).get(qa.model)
-    if agent is None:
-        agent = getattr(request.app, "chat_agents", {}).get("deepseek")
-    decision_engine = (
-        DecisionEngine(agent.get_llm())
-        if agent is not None
-        else getattr(request.app, "decision_engine", None)
-    )
+    decision_engine = DecisionEngine(agent.get_llm())
     chroma_db = getattr(request.app, "chroma_db", None)
 
     def generate():

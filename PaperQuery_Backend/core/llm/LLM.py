@@ -57,7 +57,9 @@ class LLM:
         self.chatllm = self.llms['deepseek']
 
     def get_llm(self, name):
-        return self.llms.get(name, self.llms['deepseek'])
+        if name not in self.llms:
+            raise ValueError(f"Model '{name}' is not configured")
+        return self.llms[name]
 
     def get_all_llms(self):
         return self.llms
@@ -83,6 +85,8 @@ class LLM:
 
     def get_stream_llm(self, model_name='deepseek'):
         """获取用于流式输出的 LLM"""
+        if model_name not in self.llms:
+            raise ValueError(f"Model '{model_name}' is not configured")
         if model_name == 'deepseek':
             return ChatOpenAI(
                 model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
@@ -91,8 +95,6 @@ class LLM:
                 openai_api_base=os.getenv("DEEPSEEK_API_BASE"),
             )
         elif model_name == 'kimi':
-            if not os.getenv("KIMI_API_KEY"):
-                return self.get_stream_llm('deepseek')
             return ChatOpenAI(
                 model=os.getenv("KIMI_MODEL", "kimi-k3"),
                 streaming=True,
@@ -101,8 +103,6 @@ class LLM:
                 openai_api_base=os.getenv("KIMI_API_BASE"),
             )
         elif model_name == 'openai':
-            if not os.getenv("OPENAI_API_KEY"):
-                return self.get_stream_llm('deepseek')
             return ChatOpenAI(
                 model="gpt-4o-mini",
                 streaming=True,
@@ -111,8 +111,6 @@ class LLM:
                 default_headers={"x-foo": "true"}
             )
         elif model_name == 'zhipu':
-            if not os.getenv("ZHIPU_API_KEY"):
-                return self.get_stream_llm('deepseek')
             return ChatOpenAI(
                 model=os.getenv("ZHIPU_MODEL", "glm-4-flash"),
                 streaming=True,
@@ -122,5 +120,4 @@ class LLM:
                 ),
             )
         else:
-            # 默认返回 deepseek
-            return self.get_stream_llm('deepseek')
+            raise ValueError(f"Model '{model_name}' is not supported")

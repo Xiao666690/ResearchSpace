@@ -79,7 +79,8 @@ export async function askQuestionStream(
     }),
   })
   if (!res.ok) {
-    throw new Error(`请求失败：HTTP ${res.status}`)
+    const error = await res.json().catch(() => null)
+    throw new Error(error?.detail || `请求失败：HTTP ${res.status}`)
   }
   await consumeSSE(res, (evt) => {
     if (evt.event === 'delta') {
