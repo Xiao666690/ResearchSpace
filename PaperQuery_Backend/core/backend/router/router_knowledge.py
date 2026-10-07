@@ -16,6 +16,7 @@ from core.backend.crud.crud_knowledge import (
 from core.backend.crud.crud_note import del_note
 from core.backend.router.dependencies import get_db
 from core.backend.db.models import Document, Knowledge, TMPDocument, ProjectDocument, ResearchProject
+from core.backend.services.document_path import resolve_document_path
 from core.backend.router.req_res_schema import DeleteKnowledge
 from core.backend.schema.noteschema import NoteDelete
 from core.backend.schema.schema import KnowledgeCreate, KnowledgeEdit
@@ -177,7 +178,7 @@ async def delete_knowledges(
                     .first()
                 )
                 if not other:
-                    file_path = os.getenv("AcadeAgent_DIR") + doc.documentPath
+                    file_path = resolve_document_path(doc.documentPath)
                     if os.path.exists(file_path):
                         os.remove(file_path)
             except Exception:

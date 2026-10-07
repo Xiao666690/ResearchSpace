@@ -22,6 +22,7 @@ from core.backend.crud.crud_knowledge import update_knowledge_content
 from core.backend.db.database import SessionLocal
 from core.llm.LLM import *
 from core.vectordb.chromadb import *
+from core.backend.services.document_path import resolve_document_path
 
 
 class ONNXEmbeddings(Embeddings):
@@ -70,7 +71,7 @@ if __name__ == '__main__':
             document.documentStatus=1
             update_document_status(db,document)
             try:
-                result=dp.add_newpaper(os.getenv("AcadeAgent_DIR")+document.documentPath,document.knowledgeID)
+                result=dp.add_newpaper(resolve_document_path(document.documentPath),document.knowledgeID)
             except Exception as e:
                 print(Fore.RED, f"文档处理失败，已回滚为排队状态: {e}", Style.RESET_ALL)
                 traceback.print_exc()

@@ -6,6 +6,7 @@ import os
 from pydantic import BaseModel, ConfigDict
 
 from core.skills.base import BaseSkill, SkillResult
+from core.backend.services.document_path import resolve_document_path
 
 
 class PaperReaderInput(BaseModel):
@@ -36,7 +37,7 @@ class PaperReaderSkill(BaseSkill):
             if doc is None:
                 return SkillResult(ok=False, error_code="NOT_FOUND", error_message="文档不存在")
             path = (doc.documentPath if os.path.exists(doc.documentPath)
-                    else os.getenv("AcadeAgent_DIR", ".") + doc.documentPath)
+                    else resolve_document_path(doc.documentPath))
         finally:
             db.close()
 
