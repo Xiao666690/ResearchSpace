@@ -58,6 +58,7 @@ export async function askQuestionStream(
   onCitations: (citations: CitationItem[]) => void,
   onSearchStatus: (progress: SearchProgress) => void,
   onExternalPapers: (result: ExternalPaperResult) => void,
+  projectId?: string,
 ): Promise<void> {
   const token = localStorage.getItem('token')
   const baseUrl = import.meta.env.VITE_API_BASE_URL
@@ -69,6 +70,7 @@ export async function askQuestionStream(
     },
     body: JSON.stringify({
       question,
+      project_id: projectId || null,
       document_ids: documentIds,
       model,
       mode: 'ask',

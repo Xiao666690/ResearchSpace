@@ -7,6 +7,7 @@ import type { ChatDocumentSnapshot } from './chatHistory'
 import { useDocumentListStore } from './documentList'
 import { useMemoryStore } from './memory'
 import { useModelStore } from './modelStore'
+import { useResearchProjectStore } from './researchProject'
 
 export type Message = {
   id?: number
@@ -57,11 +58,15 @@ export const useMessageListStore = defineStore('messageList', () => {
   }
 
   function addGptMessage(question: string, ids: string[]) {
+    const projectId = window.location.pathname.match(/\/home\/projects\/([^/]+)\/chat(?:\/|$)/)?.[1]
+    const projectStore = useResearchProjectStore()
+    const allowedIds = new Set(projectStore.projectDocuments.map(paper => paper.document_id))
+    const scopedIds = projectId ? ids.filter(id => allowedIds.has(id)) : ids
     const modelStore = useModelStore()
     const model = modelStore.currentModel
     const modelLabel = modelStore.getModelLabel(model)
     const newId = state.messageList.length
-    const memory = useMemoryStore().getMemory
+    const memory = projectId ? '' : useMemoryStore().getMemory
     let answer = ''
     let citations: CitationItem[] = []
 
@@ -97,7 +102,7 @@ export const useMessageListStore = defineStore('messageList', () => {
 
     askQuestionStream(
       question,
-      ids,
+      scopedIds,
       model,
       memory,
       (text) => {
@@ -123,6 +128,7 @@ export const useMessageListStore = defineStore('messageList', () => {
         }
         saveHistorySnapshot()
       },
+      projectId,
     )
       .then(() => {
         if (state.messageList[newId]) {

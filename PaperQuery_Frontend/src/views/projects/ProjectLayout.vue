@@ -15,7 +15,7 @@ onMounted(() => load(String(route.params.projectId)))
 watch(() => route.params.projectId, id => { if (id) load(String(id)) })
 const tabs = [
   ['overview', '概览'], ['library', '论文'], ['map', '研究图谱'], ['evidence', '证据看板'],
-  ['compare', '比较实验室'], ['research', '研究任务'], ['timeline', '时间线'],
+  ['compare', '比较实验室'], ['chat', '智能问答'], ['research', '研究任务'], ['timeline', '时间线'],
   ['studio', '成果工作室'], ['collaboration', '协作'],
 ]
 </script>

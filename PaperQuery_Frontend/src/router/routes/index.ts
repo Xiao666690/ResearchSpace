@@ -79,6 +79,8 @@ const routes: Array<RouteRecordRaw> = [
           { path: '', redirect: to => `${to.path}/overview` },
           { path: 'overview', component: () => import('@/views/projects/ProjectOverviewView.vue') },
           { path: 'library', component: () => import('@/views/projects/ProjectLibraryView.vue') },
+          { path: 'chat', component: () => import('@/views/chat/chat.vue') },
+          { path: 'research', component: () => import('@/views/research/ResearchView.vue') },
         ],
       },
       // 团队管理：仅 admin 可进入（路由守卫见 router/index.ts）

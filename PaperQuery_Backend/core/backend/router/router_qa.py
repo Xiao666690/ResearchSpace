@@ -18,6 +18,7 @@ from core.backend.db.models import ActivityEvent, Document, TMPDocument
 from core.backend.router.dependencies import get_db
 from core.backend.utils.utils import get_current_user
 from core.backend.router.req_res_schema import QARequest
+from core.backend.services.project_service import get_project_or_404, project_document_ids, project_documents
 from core.decision.engine import DecisionEngine
 from core.decision.external_search import (
     classify_external_request,
@@ -90,19 +91,28 @@ def qa_stream(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if qa.project_id:
+        project = get_project_or_404(db, qa.project_id, user)
+        allowed_ids = project_document_ids(db, project)
+        if qa.document_ids and not set(qa.document_ids).issubset(allowed_ids):
+            raise HTTPException(status_code=403, detail='部分论文不属于当前研究项目')
+        qa.document_ids = list(dict.fromkeys(qa.document_ids)) if qa.document_ids else sorted(allowed_ids)
     selected_papers = []
     if qa.document_ids:
         selected_ids = set(qa.document_ids)
-        owned_papers = {
-            row.uid: row for row in db.query(Document).filter(
-                Document.lid == user.workspace_lid, Document.uid.in_(selected_ids)
-            ).all()
-        }
-        owned_papers.update(
-            (row.uid, row) for row in db.query(TMPDocument).filter(
-                TMPDocument.lid == user.workspace_lid, TMPDocument.uid.in_(selected_ids)
-            ).all()
-        )
+        if qa.project_id:
+            owned_papers = {doc.uid: doc for _, doc in project_documents(db, project, document_ids=selected_ids)}
+        else:
+            owned_papers = {
+                row.uid: row for row in db.query(Document).filter(
+                    Document.lid == user.workspace_lid, Document.uid.in_(selected_ids)
+                ).all()
+            }
+            owned_papers.update(
+                (row.uid, row) for row in db.query(TMPDocument).filter(
+                    TMPDocument.lid == user.workspace_lid, TMPDocument.uid.in_(selected_ids)
+                ).all()
+            )
         if not selected_ids.issubset(owned_papers):
             raise HTTPException(status_code=403, detail="部分论文不在当前账号的资料库中")
         selected_papers = [owned_papers[document_id] for document_id in dict.fromkeys(qa.document_ids)]
@@ -110,7 +120,7 @@ def qa_stream(
     selected_paper_text = "、".join(selected_names) if selected_names else "无"
 
     # Count submitted Ask requests for this account. The event contains no question text.
-    db.add(ActivityEvent(lid=user.workspace_lid, event_type="ask"))
+    db.add(ActivityEvent(lid=user.workspace_lid, project_id=qa.project_id, event_type="ask"))
     db.commit()
 
     trace_id = uuid.uuid4().hex[:12]
