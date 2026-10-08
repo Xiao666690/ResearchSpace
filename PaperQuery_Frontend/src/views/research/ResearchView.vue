@@ -370,7 +370,7 @@ onBeforeUnmount(() => { clearInterval(clockTimer); clearInterval(pollTimer) })
 </template>
 
 <style scoped>
-.research-page { position: relative; width: 100%; height: 100vh; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 32px; color: #172033; background: linear-gradient(145deg, #f7f9ff 0%, #f8fbff 48%, #f7f5ff 100%); }
+.research-page { position: relative; width: 100%; height: 100vh; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 32px; color: #172033; background: transparent; }
 .ambient { position: absolute; border-radius: 999px; filter: blur(10px); pointer-events: none; opacity: .5; }
 .ambient-one { width: 340px; height: 340px; right: -90px; top: -130px; background: radial-gradient(circle, #c8d9ff, transparent 70%); }
 .ambient-two { width: 300px; height: 300px; left: 16%; top: 300px; background: radial-gradient(circle, #eadcff, transparent 70%); }
@@ -406,7 +406,7 @@ onBeforeUnmount(() => { clearInterval(clockTimer); clearInterval(pollTimer) })
 @media (max-width: 680px) { .research-page { padding: 14px; }.hero-panel { padding: 22px 18px; border-radius: 20px; }.hero-copy h1 { font-size: 29px; }.composer-footer { align-items: flex-start; gap: 10px; flex-direction: column; }.research-button { width: 100%; }.stats-grid { grid-template-columns: 1fr 1fr; gap: 9px; }.stat-card { min-height: 72px; padding: 12px; }.quick-prompts button { max-width: 100%; }.detail-header { align-items: flex-start; flex-direction: column; } }
 
 /* 简约视觉：保留 PaperAgent 紫色识别，降低渐变、阴影与装饰噪音。 */
-.research-page { padding: 38px 40px 64px; color: #202123; background: #fff; }
+.research-page { padding: 38px 40px 64px; color: #202123; background: transparent; }
 .hero-panel { max-width: 980px; margin: 0 auto; padding: 42px 0 28px; overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .hero-panel::after { display: none; }
 .hero-copy { text-align: center; }

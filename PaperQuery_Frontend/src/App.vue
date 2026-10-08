@@ -1,5 +1,5 @@
 <template>
-  <div id="main router" class="flex-grow h-full">
+  <div id="main router" class="flex-grow min-w-0 h-full">
     <router-view :key="key" class="" />
   </div>
 </template>
