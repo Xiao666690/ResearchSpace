@@ -1,27 +1,27 @@
 <template>
-  <div class="note-fullscreen">
+  <div class="note-fullscreen" :class="`mobile-${mobilePanel}`">
     <header class="fullscreen-bar">
       <button
         type="button"
         class="back-btn"
-        :class="{ 'elastic-scale': backAnimating }"
+
         title="返回论文阅读页"
-        @click="onBackClick"
-        @animationend="backAnimating = false"
+        @click="goBack"
+
       >← 返回</button>
       <span class="bar-title">笔记全屏编辑</span>
-    </header>
+    </header><div class="mobile-note-tabs" aria-label="编辑区切换"><button :aria-pressed="mobilePanel === 'paper'" @click="mobilePanel = 'paper'">论文</button><button :aria-pressed="mobilePanel === 'note'" @click="mobilePanel = 'note'">编辑笔记</button></div>
     <div class="fullscreen-body">
       <ResizablePanelGroup id="note_full_1" direction="horizontal" class="w-full h-full">
-        <ResizablePanel id="note-full-panel-1" :default-size="55" :min-size="0" :collapsed-size="0" collapsible class="h-full min-w-0">
+        <ResizablePanel id="note-full-panel-1" :default-size="55" :min-size="0" :collapsed-size="0" collapsible class="h-full min-w-0 paper-panel">
           <div class="w-full h-full">
-            <pdfViewer :knowledge-i-d="knowledgeID" :document-i-d="documentID" />
+            <pdfViewer :key="`${knowledgeID}:${documentID}`" :knowledge-i-d="knowledgeID" :document-i-d="documentID" @loaded="readerReady = true" />
           </div>
         </ResizablePanel>
         <ResizableHandle with-handle class="note-full-handle" />
-        <ResizablePanel id="note-full-panel-2" :default-size="45" :min-size="0" :collapsed-size="0" collapsible class="h-full min-w-0">
+        <ResizablePanel id="note-full-panel-2" :default-size="45" :min-size="0" :collapsed-size="0" collapsible class="h-full min-w-0 note-panel">
           <div class="note-paper">
-            <note class="w-full h-full" :knowledgeID="knowledgeID" :documentID="documentID" :hide-fullscreen="true"></note>
+            <note :key="`${knowledgeID}:${documentID}`" class="w-full h-full" :knowledgeID="knowledgeID" :documentID="documentID" :hide-fullscreen="true"></note>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -53,28 +53,16 @@
   overflow: hidden;
 }
 
-/* 返回按钮果冻感（点击/出现时弹性缩放） */
-@keyframes elastic-scale {
-  0%   { opacity: 0; transform: scale(0); }
-  40%  { opacity: 1; transform: scale(1.16); }
-  60%  { transform: scale(0.92); }
-  75%  { transform: scale(1.05); }
-  90%  { transform: scale(0.98); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.elastic-scale {
-  animation: elastic-scale 800ms cubic-bezier(0.34, 1.56, 0.64, 1) 0ms both;
-  will-change: transform, opacity;
-}
-@media (prefers-reduced-motion: reduce) {
-  .elastic-scale { animation: none; opacity: 1; transform: none; }
-}
+.back-btn{transition:transform 120ms var(--rs-ease,cubic-bezier(.23,1,.32,1)),background-color 140ms ease}.back-btn:active{transform:scale(.98)}.back-btn:focus-visible{outline:2px solid #6858D6;outline-offset:3px}.fullscreen-bar{height:56px;background:#FBFAF7}.bar-title{letter-spacing:.03em}@media(prefers-reduced-motion:reduce){.back-btn{transition:none}.back-btn:active{transform:none}}
+.note-fullscreen{height:calc(100dvh - 64px)}.mobile-note-tabs{display:none}@media(max-width:680px){.note-fullscreen{height:calc(100dvh - 58px)}.mobile-note-tabs{display:flex;gap:6px;padding:8px;background:white;border-bottom:1px solid var(--rs-line)}.mobile-note-tabs button{padding:8px 12px;border-radius:8px;font-size:12px;color:var(--rs-muted)}.mobile-note-tabs button[aria-pressed=true]{background:var(--rs-primary-soft);color:var(--rs-primary)}.mobile-paper .note-panel,.mobile-note .paper-panel,.note-full-handle{display:none!important}.mobile-paper .paper-panel,.mobile-note .note-panel{flex:1 1 100%!important}}
 </style>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import pdfViewer from '@/views/pdf/pdfViewer.vue'
 import note from '@/views/note/note.vue'
+import { useMediaQuery } from '@vueuse/core'
+import { useReadingTracker } from '@/composables/useReadingTracker'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -83,18 +71,17 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const knowledgeID = route.params.knowledgeID as string
-const documentID = route.params.documentID as string
+const knowledgeID = computed(() => String(route.params.knowledgeID || ''))
+const documentID = computed(() => String(route.params.documentID || ''))
 const goBack = () => {
   // 优先回退到来源页；无历史（如直接刷新进入）则回论文阅读页
   if (window.history.length > 1) router.back()
-  else router.push({ name: 'pdfInfo', params: { knowledgeID, documentID } })
+  else router.push({ name: 'pdfInfo', params: { knowledgeID: knowledgeID.value, documentID: documentID.value } })
 }
-const backAnimating = ref(false)
-onMounted(() => { backAnimating.value = true }) // 页面出现时果冻弹出
-const onBackClick = () => {
-  if (backAnimating.value) { goBack(); return }
-  backAnimating.value = true // 点击触发果冻缩放
-  window.setTimeout(() => { backAnimating.value = false; goBack() }, 320)
-}
+const readerReady = ref(false)
+const mobilePanel = ref('note')
+const isMobile = useMediaQuery('(max-width:680px)')
+const trackingReady = computed(() => readerReady.value && (!isMobile.value || mobilePanel.value === 'paper'))
+watch([knowledgeID, documentID], () => { readerReady.value = false }, { flush: 'sync' })
+useReadingTracker(knowledgeID, documentID, trackingReady)
 </script>

@@ -1,6 +1,8 @@
 <template>
-  <aside class="h-full border-l border-gray-100 bg-[#f9f9f9]">
-    <div class="flex items-center justify-between gap-2 border-b border-gray-100 p-4">
+  <aside class="chat-history h-full border-l border-gray-100 bg-[#f9f9f9]">
+    <div
+      class="flex items-center justify-between gap-2 border-b border-gray-100 p-4"
+    >
       <div>
         <div class="text-sm font-semibold text-gray-900">历史会话</div>
         <div class="text-xs text-gray-500">当前账号本地保存</div>
@@ -23,36 +25,61 @@
         role="button"
         tabindex="0"
         @click="restoreSession(session)"
-        @keydown.enter="restoreSession(session)"
+        @keydown.enter.self="restoreSession(session)"
+        @keydown.space.self.prevent="restoreSession(session)"
+        :aria-pressed="historyStore.state.currentSessionId === session.id"
       >
         <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+          <div
+            class="min-w-0 flex-1 truncate text-sm font-medium text-gray-900"
+          >
             {{ session.title }}
           </div>
           <div class="session-actions flex shrink-0 gap-1">
-            <button type="button" title="重命名会话" @click.stop="renameSession(session)">
+            <button
+              type="button"
+              title="重命名会话"
+              aria-label="重命名会话"
+              @click.stop="renameSession(session)"
+            >
               <Pencil :size="13" />
             </button>
-            <button type="button" title="总结当前会话" :disabled="summarizingId === session.id" @click.stop="summarizeSession(session)">
-              <LoaderCircle v-if="summarizingId === session.id" :size="13" class="animate-spin" />
+            <button
+              type="button"
+              title="总结当前会话"
+              aria-label="总结当前会话"
+              :disabled="summarizingId === session.id"
+              @click.stop="summarizeSession(session)"
+            >
+              <LoaderCircle
+                v-if="summarizingId === session.id"
+                :size="13"
+                class="animate-spin"
+              />
               <FileText v-else :size="13" />
             </button>
           </div>
         </div>
-        <div class="mt-1 flex items-center justify-between gap-2 text-xs text-gray-500">
+        <div
+          class="mt-1 flex items-center justify-between gap-2 text-xs text-gray-500"
+        >
           <span>{{ session.modelLabel }}</span>
           <span>{{ formatTime(session.updatedAt) }}</span>
         </div>
         <div class="mt-2 text-xs text-gray-500">
-          {{ session.documents.length ? `绑定 ${session.documents.length} 篇论文` : '未绑定论文' }}
+          {{
+            session.documents.length
+              ? `绑定 ${session.documents.length} 篇论文`
+              : '未绑定论文'
+          }}
         </div>
         <p class="session-summary">{{ visiblePreview(session) }}</p>
         <div
           v-if="session.documents.length"
           class="mt-2 truncate text-xs text-gray-400"
-          :title="session.documents.map(item => item.documentName).join(', ')"
+          :title="session.documents.map((item) => item.documentName).join(', ')"
         >
-          {{ session.documents.map(item => item.documentName).join(', ') }}
+          {{ session.documents.map((item) => item.documentName).join(', ') }}
         </div>
       </article>
     </div>
@@ -86,24 +113,41 @@ function restoreSession(session: ChatSession) {
   historyStore.useSession(session.id)
   modelStore.setModel(session.model as ModelType)
   messageListStore.restoreMessages(session.messages, session.memory)
-  useDocumentListStore().restoreDocuments(session.documents || [], session.selectedDocumentIDs)
+  useDocumentListStore().restoreDocuments(
+    session.documents || [],
+    session.selectedDocumentIDs,
+  )
   ElMessage.success('已恢复历史会话')
 }
 
 function visiblePreview(session: ChatSession) {
-  return session.messages.filter(message => (message.role === 'user' || message.role === 'gpt') && message.content.trim())
-    .slice(-2).map(message => `${message.role === 'user' ? '提问' : '回答'}：${message.content.trim().slice(0, 100)}`).join('  ·  ')
+  return session.messages
+    .filter(
+      (message) =>
+        (message.role === 'user' || message.role === 'gpt') &&
+        message.content.trim(),
+    )
+    .slice(-2)
+    .map(
+      (message) =>
+        `${message.role === 'user' ? '提问' : '回答'}：${message.content.trim().slice(0, 100)}`,
+    )
+    .join('  ·  ')
 }
 
 async function renameSession(session: ChatSession) {
   try {
-    const { value } = await ElMessageBox.prompt('输入新的会话名称', '重命名会话', {
-      inputValue: session.title,
-      inputPlaceholder: '最多 60 个字符',
-      inputValidator: value => Boolean(value?.trim()) || '会话名称不能为空',
-      confirmButtonText: '保存',
-      cancelButtonText: '取消',
-    })
+    const { value } = await ElMessageBox.prompt(
+      '输入新的会话名称',
+      '重命名会话',
+      {
+        inputValue: session.title,
+        inputPlaceholder: '最多 60 个字符',
+        inputValidator: (value) => Boolean(value?.trim()) || '会话名称不能为空',
+        confirmButtonText: '保存',
+        cancelButtonText: '取消',
+      },
+    )
     if (historyStore.renameSession(session.id, value)) {
       ElMessage.success('会话名称已更新')
     }
@@ -115,8 +159,11 @@ async function renameSession(session: ChatSession) {
 async function summarizeSession(session: ChatSession) {
   if (summarizingId.value) return
   const transcript = session.messages
-    .filter(message => message.role !== 'system' && message.content.trim())
-    .map(message => `${message.role === 'user' ? '用户' : '助手'}：${message.content.trim()}`)
+    .filter((message) => message.role !== 'system' && message.content.trim())
+    .map(
+      (message) =>
+        `${message.role === 'user' ? '用户' : '助手'}：${message.content.trim()}`,
+    )
     .join('\n')
   if (!transcript) {
     ElMessage.warning('当前会话暂无可总结内容')
@@ -152,13 +199,81 @@ function formatTime(timestamp: number) {
 </script>
 
 <style scoped>
-.session-card { cursor: pointer; }
-.session-card.active { border-color: #cfc9e8; background: #f5f3fa; }
-.session-actions { opacity: 0; transition: opacity .15s ease; }
+.session-card {
+  cursor: pointer;
+}
+.session-card.active {
+  border-color: #cfc9e8;
+  background: #f5f3fa;
+}
+.session-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
 .session-card:hover .session-actions,
-.session-card:focus-within .session-actions { opacity: 1; }
-.session-actions button { display: grid; width: 25px; height: 25px; place-items: center; border: 0; border-radius: 6px; color: #72727a; background: transparent; }
-.session-actions button:hover { color: #55489d; background: #ece9f5; }
-.session-actions button:disabled { cursor: wait; opacity: .55; }
-.session-summary { display: -webkit-box; overflow: hidden; margin: 8px 0 0; color: #777780; font-size: 11px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.session-card:focus-within .session-actions {
+  opacity: 1;
+}
+.session-actions button {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  color: #72727a;
+  background: transparent;
+}
+.session-actions button:hover {
+  color: #55489d;
+  background: #ece9f5;
+}
+.session-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.session-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 8px 0 0;
+  color: #777780;
+  font-size: 11px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.session-card {
+  border-radius: 10px;
+  border-color: var(--rs-line);
+  box-shadow: none;
+}
+.session-card.active {
+  border-color: #cfc7e9;
+  background: #f0eef9;
+}
+.session-summary {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.session-actions {
+  opacity: 1;
+}
+.session-actions button {
+  height: 30px;
+  width: 30px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .session-actions {
+    opacity: 0;
+  }
+  .session-card:hover .session-actions,
+  .session-card:focus-within .session-actions {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .session-actions {
+    transition: none;
+  }
+}
 </style>

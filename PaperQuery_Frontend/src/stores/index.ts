@@ -37,7 +37,11 @@ export const store = createStore({
     // 用户退出登录/注销
     logout({ commit }) {
       console.log('退出登录')
-      commit('setUser', null)
+      for (const key of ['token', 'username', 'role', 'workspaceLid']) localStorage.removeItem(key)
+      commit('clearMessage')
+      commit('updateContext', '')
+      commit('setSelectedText', '')
+      commit('setTranslatedText', '')
     },
     updateSelectedText({ commit }, text) {
       commit('setSelectedText', text)

@@ -1,6 +1,6 @@
 <template>
-  <div class="translation-panel flex-col h-full w-full min-h-0 min-w-0 border">
-    <div class="flex items-center justify-between p-2 border-b">
+  <div class="translation-panel flex-col h-full w-full min-h-0 min-w-0">
+    <div class="translation-header flex items-center justify-between p-2 border-b">
       <!-- <h1 class="text-xl font-bold">翻译</h1> -->
       <Tabs :default-value="route.query.tab === 'note' ? 'note' : 'translate'">
         <TabsList>
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Note content -->
-      <div v-if="!TranDisplay" class="translation-scroll note-scroll h-full overflow-auto p-4">
+      <div v-show="!TranDisplay" class="translation-scroll note-scroll h-full overflow-auto p-4">
         <note class="w-full h-full" :knowledgeID="knowledgeID" :documentID="documentID"></note>
       </div>
     </div>
@@ -105,4 +105,5 @@ const displayNote = () => {
 .note-scroll {
   background: transparent;
 }
+.translation-header{background:#FCFBF8;padding:12px 14px}.translation-scroll{background:#FFFEFC}.translation-text{border-color:#E8E5DE;border-radius:8px;line-height:1.85;color:#202124;word-break:normal}.translation-text:first-of-type{background:#F7F6F1}.note-scroll{padding:0!important}.translation-panel :deep([role='tablist']){background:#EEEDE8;border-radius:8px}.translation-panel :deep([role='tab'][data-state='active']){color:#6858D6;background:white;box-shadow:0 1px 3px #2021240C}
 </style>

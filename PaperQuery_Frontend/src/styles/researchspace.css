@@ -1,0 +1,60 @@
+/* ResearchSpace design system. Geometric page layouts stay with their owners. */
+:root {
+  --rs-canvas:#f7f7f4; --rs-bg:var(--rs-canvas); --rs-surface:#fff; --rs-surface-soft:#f0f0ec;
+  --rs-ink:#202124; --rs-muted:#687078; --rs-line:#e5e7eb; --rs-border:var(--rs-line);
+  --rs-primary:#6858d6; --rs-primary-hover:#5746c4; --rs-primary-soft:#efedf9;
+  --rs-gold:#b58c53; --rs-success:#287c60; --rs-warning:#986818; --rs-danger:#b94646;
+  --rs-night:#080d18; --rs-ease:cubic-bezier(.23,1,.32,1); --rs-ease-move:cubic-bezier(.4,0,.2,1);
+  --rs-shadow:0 1px 3px rgb(32 33 36 / .025),0 8px 28px rgb(32 33 36 / .04);
+  --rs-shadow-float:0 12px 60px rgb(25 28 38 / .12),0 1px 4px rgb(25 28 38 / .04);
+  --c-brand:var(--rs-primary); --c-bg:var(--rs-bg); --c-text:var(--rs-ink); --c-tips:var(--rs-muted); --c-border:var(--rs-line); --c-hover:var(--rs-primary);
+  --background:60 16% 97%; --foreground:225 6% 13%; --card:0 0% 100%; --card-foreground:225 6% 13%;
+  --popover:0 0% 100%; --popover-foreground:225 6% 13%; --primary:248 61% 59%; --primary-foreground:0 0% 100%;
+  --secondary:60 9% 94%; --secondary-foreground:225 6% 13%; --accent:250 50% 95%; --accent-foreground:248 61% 40%;
+  --muted:60 9% 94%; --muted-foreground:210 7% 43%; --border:220 13% 91%; --input:220 13% 86%; --ring:248 61% 59%; --radius:.5rem;
+  --el-color-primary:#6858d6; --el-color-primary-light-3:#968be3; --el-color-primary-light-5:#b6afec; --el-color-primary-light-7:#d5d1f4; --el-color-primary-light-9:#efedf9; --el-color-primary-dark-2:#5746c4;
+  --el-text-color-primary:var(--rs-ink); --el-text-color-regular:var(--rs-muted); --el-border-color:var(--rs-line); --el-border-radius-base:8px;
+}
+:root.dark { --rs-canvas:#151820; --rs-surface:#1e222c; --rs-surface-soft:#242936; --rs-ink:#f0f0ec; --rs-muted:#a7adb9; --rs-line:#343946; --rs-primary:#a69aef; --rs-primary-soft:#2f2947; --background:225 21% 10%; --foreground:60 12% 94%; --card:224 19% 15%; --card-foreground:60 12% 94%; --popover:224 19% 15%; --popover-foreground:60 12% 94%; --primary:249 73% 77%; --primary-foreground:225 21% 10%; --border:224 15% 24%; --input:224 15% 30%; }
+body { background:var(--rs-bg); color:var(--rs-ink); font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased; }
+::selection { background:#ded8f6; color:#30275a; }
+:where(button,[role=button],a,input,textarea,select) { -webkit-tap-highlight-color:transparent; }
+:where(button,[role=button]) { touch-action:manipulation; }
+:where(button:not(:disabled),[role=button]:not([aria-disabled=true])) { cursor:pointer; }
+:where(button,[role=button],a,input,textarea,select):focus-visible { outline:2px solid var(--rs-primary); outline-offset:3px; }
+:where(input,textarea,select) { accent-color:var(--rs-primary); }
+:where(input,textarea)::placeholder { color:#8b9097; }
+.rs-button { transition:transform 120ms var(--rs-ease),background-color 140ms ease,box-shadow 140ms ease,color 140ms ease; }
+html[data-input=pointer] .rs-button:active:not(:disabled) { transform:scale(.98); }
+.rs-input { transition:border-color 140ms ease,box-shadow 140ms ease; }
+.rs-input:focus { border-color:var(--rs-primary); }
+.rs-overlay { background:rgb(11 17 29 / .4); backdrop-filter:blur(3px); }
+.rs-dialog { width:calc(100% - 32px); max-height:calc(100dvh - 48px); overflow-y:auto; border-radius:16px; border-color:var(--rs-line); box-shadow:var(--rs-shadow-float); animation-duration:200ms!important; animation-timing-function:var(--rs-ease)!important; }
+.rs-dialog[data-state=closed] { animation-duration:140ms!important; }
+.rs-popover { border-radius:12px; border-color:var(--rs-line); box-shadow:var(--rs-shadow-float); transform-origin:var(--radix-popover-content-transform-origin,var(--radix-dropdown-menu-content-transform-origin,top center)); animation-duration:160ms!important; animation-timing-function:var(--rs-ease)!important; }
+.rs-popover[data-state=closed] { animation-duration:120ms!important; }
+.rs-close { width:28px; height:28px; display:grid; place-items:center; border-radius:7px; }
+.rs-close:hover { background:var(--rs-surface-soft); }
+.workspace-stage :where(h1,h2,h3) { text-wrap:balance; }
+.workspace-stage :where(p,td,th) { overflow-wrap:anywhere; }
+.workspace-stage :where(button,input,textarea,select) { font-family:inherit; }
+.workspace-stage :where(input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select) { border-radius:8px; }
+.el-message,.el-notification { border-radius:12px!important; border-color:var(--rs-line)!important; box-shadow:var(--rs-shadow-float)!important; }
+.el-dialog { border-radius:16px!important; box-shadow:var(--rs-shadow-float)!important; }
+.el-dialog__headerbtn:focus-visible { outline:2px solid var(--rs-primary); }
+.el-table { --el-table-header-bg-color:var(--rs-surface-soft); --el-table-row-hover-bg-color:var(--rs-primary-soft); --el-table-border-color:var(--rs-line); }
+.el-tabs__active-bar { background-color:var(--rs-primary); }
+@media(hover:hover) and (pointer:fine) { .rs-button:hover:not(:disabled) { box-shadow:0 2px 6px rgb(40 32 83 / .06); } }
+@media(max-width:640px) { .rs-dialog { padding:20px; } :where(.workspace-stage input,.workspace-stage textarea,.workspace-stage select) { font-size:16px; } .el-message { max-width:calc(100vw - 24px); } .el-notification { width:min(330px,calc(100vw - 24px))!important; } }
+@media(prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  *,*::before,*::after { scroll-behavior:auto!important; }
+  .rs-button,.rs-input { transition-duration:0ms!important; transform:none!important; }
+  .rs-overlay,.rs-dialog,.rs-popover { animation:none!important; transition:none!important; }
+  .workspace-stage [class*=animate-] { animation:none!important; }
+}
+/* Pointer feedback also covers existing native feature controls. */
+.workspace-stage button { transition: transform 120ms var(--rs-ease), background-color 140ms ease, color 140ms ease; }
+html[data-input=pointer] .workspace-stage button:active:not(:disabled) { transform: scale(.98); }
+@media (prefers-reduced-motion:reduce) { .workspace-stage button { transition:none!important; transform:none!important; } }
+html[data-input=keyboard] .workspace-stage button:active { transform:none!important; }

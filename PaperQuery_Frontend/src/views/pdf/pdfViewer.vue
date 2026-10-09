@@ -23,21 +23,34 @@ const route = useRoute()
 
 // 手动 fetch 带鉴权头获取 PDF，避免 usePDF 直连 URL 因缺少 token 返回 401 导致左侧空白
 const pdfUrl = ref<string | null>(null)
-const { pdf, pages } = usePDF(pdfUrl)
+const pdfLoading = ref(true)
+const pdfError = ref('')
+const { pdf, pages } = usePDF(pdfUrl, { onError: (error: any) => { pdfLoading.value = false; pdfError.value = error?.message || '无法解析此 PDF，请重新加载。' } })
 
+let disposed = false
+let loadController: AbortController | undefined
 async function loadPdf() {
+  loadController?.abort()
+  const controller = new AbortController()
+  loadController = controller
+  pdfLoading.value = true
+  pdfError.value = ''
   try {
     const token = localStorage.getItem('token')
     const resp = await fetch(
       `${apiBaseUrl}/document/getFile?documentID=${props.documentID}&knowledgeID=${props.knowledgeID}`,
-      { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+      { headers: token ? { Authorization: `Bearer ${token}` } : {}, signal: controller.signal },
     )
     if (!resp.ok) throw new Error(`PDF 加载失败 (HTTP ${resp.status})`)
     const blob = await resp.blob()
+    if (disposed || controller.signal.aborted) return
     if (pdfUrl.value) URL.revokeObjectURL(pdfUrl.value)
     pdfUrl.value = URL.createObjectURL(blob)
   } catch (error: any) {
-    ElMessage.error(error?.message || 'PDF 加载失败')
+    if (disposed || controller.signal.aborted) return
+    pdfLoading.value = false
+    pdfError.value = error?.message || 'PDF 加载失败'
+    ElMessage.error(pdfError.value)
   }
 }
 
@@ -119,6 +132,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  disposed = true
+  loadController?.abort()
   selectionVersion++
   clearTimeout(translationTimer)
   resizeObserver?.disconnect()
@@ -130,6 +145,7 @@ onBeforeUnmount(() => {
 
 watch(pages, async (count) => {
   if (!count) return
+  pdfLoading.value = false
   emit('loaded')
   await nextTick()
   jumpToPage(Number(route.query.page) || 1)
@@ -155,7 +171,9 @@ watch(() => route.query.page, async (value) => {
       </div>
     </div>
     <div ref="container" class="pdf-container" @scroll.passive="updateCurrentPage" @mouseup="handleMouseUp">
-      <div v-for="pageNumber in pages" :key="pageNumber" :data-pdf-page="pageNumber" class="pdf-page" :style="{ width: `${renderedPageWidth}px` }">
+      <div v-if="pdfError" class="pdf-state" role="alert"><span class="state-icon">!</span><h3>论文暂时无法打开</h3><p>{{ pdfError }}</p><button type="button" @click="loadPdf">重新加载</button></div>
+      <div v-else-if="pdfLoading" class="pdf-state" role="status"><span class="loading-page"/><h3>正在准备阅读空间</h3><p>正在加载论文与文本层…</p></div>
+      <div v-for="pageNumber in (pdfError || pdfLoading ? 0 : pages)" :key="pageNumber" :data-pdf-page="pageNumber" class="pdf-page" :style="{ width: `${renderedPageWidth}px` }">
         <VuePDF :pdf="pdf" :page="pageNumber" :width="renderedPageWidth" text-layer />
         <span class="page-label">{{ pageNumber }} / {{ pages }}</span>
       </div>
@@ -165,14 +183,15 @@ watch(() => route.query.page, async (value) => {
 
 <style scoped>
 .reader { display: flex; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; container-type: inline-size; }
-.reader-toolbar { flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 0 12px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+.reader-toolbar { flex: none; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; padding: 0 12px; border-bottom: 1px solid #e5e7eb; background: #FBFAF7; }
 .reader-hint { margin-left: 16px; color: #6b7280; font-size: 12px; }
-.pdf-container { flex: 1; min-height: 0; overflow: auto; padding: 16px 24px 32px; background: #e9edf3; scroll-behavior: smooth; }
-.pdf-page { position: relative; margin: 0 auto 16px; background: white; box-shadow: 0 2px 10px #1f29371f; scroll-margin-top: 12px; }
+.pdf-container { flex: 1; min-height: 0; overflow: auto; padding: 16px 24px 32px; background: #ECEBE6; scroll-behavior: auto; }
+.pdf-page { position: relative; margin: 0 auto 16px; background: white; box-shadow: 0 3px 18px #20212412; scroll-margin-top: 12px; }
 .page-label { display: block; padding: 5px; text-align: center; color: #6b7280; font-size: 12px; }
 .zoom-controls { display: flex; align-items: center; flex: none; gap: 2px; margin-left: auto; white-space: nowrap; }
 .zoom-button { width: 28px; height: 28px; padding: 0; font-size: 18px; line-height: 1; }
 .zoom-value { min-width: 44px; text-align: center; color: #374151; font-size: 12px; font-variant-numeric: tabular-nums; }
 @container (max-width: 850px) { .reader-hint { display: none; } }
 @container (max-width: 470px) { .reader-toolbar { gap: 2px; padding: 0 4px; } .reader-toolbar > button { padding: 0 4px; } }
+.pdf-state{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;min-height:320px;padding:25px;text-align:center}.pdf-state h3{font-size:17px;font-weight:500}.pdf-state p{color:#687078;font-size:12px;overflow-wrap:anywhere}.pdf-state button{border:1px solid #DAD5E8;background:#fff;padding:8px 16px;border-radius:8px;font-size:12px;color:#6858D6}.state-icon{display:grid;place-items:center;border:1px solid #C7B4A5;border-radius:50%;width:32px;height:32px;color:#9A7451}.loading-page{width:42px;height:55px;border:1px solid #D4CFC3;background:#FCFBF6;border-radius:3px;box-shadow:3px 3px 0 #DFDCD3}.reader-toolbar{font-size:12px}.reader-toolbar>span{white-space:nowrap}.pdf-state button:focus-visible{outline:2px solid #6858D6;outline-offset:3px}@media(prefers-reduced-motion:reduce){.pdf-container{scroll-behavior:auto}}
 </style>

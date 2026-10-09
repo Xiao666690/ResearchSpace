@@ -1,0 +1,19 @@
+{
+  "mode": "browser fixtures only",
+  "checks": {
+    "loginError": "模拟网络失败，请重试",
+    "loginRetained": "browser-preview",
+    "reveal": "text",
+    "mismatchNoRequest": true,
+    "mismatch": "两次输入的密码不一致，请重新确认。",
+    "failedDraft": "保留失败后的输入",
+    "failedDialog": 1,
+    "evidenceDialog": 1,
+    "graphCanvas": 3,
+    "paperWidth": 390,
+    "toolsWidth": 390,
+    "searchKeyboard": true,
+    "searchNavigation": true
+  },
+  "errors": []
+}

@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { isMobile, watchResize } from '@bassist/utils'
 const route = useRoute()
-const key = computed(() => `${String(route.name || route.path)}-${new Date()}`)
+const key = computed(() => String(route.matched[0]?.path || route.path))
 
 watchResize(() => {
   document.body.className = `platform-${isMobile() ? 'mobile' : 'desktop'}`

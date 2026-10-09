@@ -121,6 +121,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   // 知识页面
 
+  { path: '/:pathMatch(.*)*', name: 'notFound', component: () => import('@/views/NotFound.vue') },
   // 404页面
   // {
   //   path: '/:catchAll(.*)',

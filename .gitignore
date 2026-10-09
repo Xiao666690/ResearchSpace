@@ -37,3 +37,15 @@ PaperQuery_Backend/competition_eval/
 PaperQuery_Backend/eval/
 PaperQuery_Frontend/tsconfig.web.tsbuildinfo
 PaperQuery_Frontend/.eslintrc-auto-import.json
+
+# Track ResearchSpace design specifications
+!DESIGN.md
+!MOTION.md
+!docs/design/**/*.md
+
+# Local design references and installed authoring skills
+/.agents/
+/awesome-design-md/
+/cinematic-ui/
+/skills/
+/skills-lock.json

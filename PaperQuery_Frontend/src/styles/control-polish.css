@@ -1,0 +1,652 @@
+:root {
+  --rs-control-face: linear-gradient(180deg, #fff, #f9f9f7);
+  --rs-control-edge: #dedfe5;
+  --rs-control-shadow: inset 0 1px 0 #fff, 0 1px 2px #181d2b0b,
+    0 3px 7px #181d2b06;
+  --rs-control-primary-face: linear-gradient(
+    180deg,
+    #7a68e4,
+    #6858d6 55%,
+    #6050ca
+  );
+  --rs-control-primary-shadow: inset 0 1px 0 #ffffff38, inset 0 -1px 0 #251a642e,
+    0 2px 3px #36288721, 0 5px 12px #6858d61f;
+  --rs-control-hover-shadow: inset 0 1px 0 #fff, 0 2px 3px #181d2b0e,
+    0 5px 12px #181d2b11;
+}
+html .rs-button:not(.rs-control-link):not(.rs-control-ghost),
+html .el-button {
+  border-radius: 10px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  transition:
+    transform 120ms var(--rs-ease),
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+}
+html .rs-button.rs-control-outline,
+html .rs-button.rs-control-secondary,
+html
+  .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-text):not(
+    .is-link
+  ) {
+  border: 1px solid var(--rs-control-edge);
+  background: var(--rs-control-face);
+  color: var(--rs-ink);
+  box-shadow: var(--rs-control-shadow);
+}
+html .rs-button.rs-control-primary,
+html .el-button.el-button--primary {
+  border: 1px solid #6553cc;
+  background: var(--rs-control-primary-face);
+  color: #fff;
+  box-shadow: var(--rs-control-primary-shadow);
+}
+html .rs-button.rs-control-danger,
+html .el-button.el-button--danger {
+  border: 1px solid #ac414c;
+  background: linear-gradient(180deg, #c35a64, #b94652);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 #ffffff26,
+    0 3px 8px #b946461a;
+}
+html .rs-button.rs-control-ghost {
+  border-radius: 9px;
+  box-shadow: none;
+}
+html .rs-button:disabled,
+html .el-button.is-disabled {
+  opacity: 0.48;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+/* Explicit action families retain card, navigation and tab geometry. */
+html
+  .workspace-stage
+  :is(
+    .rs-heading-actions,
+    .heading,
+    .edit,
+    .form,
+    .create,
+    .setup,
+    .citation-form,
+    .bar,
+    .picker,
+    .map-controls,
+    .detail-actions,
+    .artifact-panel,
+    .note-actions,
+    .chat-composer,
+    .workspace-bar,
+    .fullscreen-bar,
+    .evidence-inspector,
+    .cell-detail,
+    .citation,
+    .model-picker
+  )
+  button,
+html
+  .workspace-stage
+  :is(
+    .icon-button,
+    .retry-link,
+    .save-evidence,
+    .model-trigger,
+    .pdf-state > button
+  ),
+html
+  :is(.el-dialog, .el-message-box)
+  button:not(.el-dialog__headerbtn):not(.el-message-box__headerbtn):not(
+    .el-tabs__item
+  ):not(.el-select__tags-close-btn) {
+  border-radius: 10px;
+  border-color: var(--rs-control-edge);
+  box-shadow: var(--rs-control-shadow);
+  transition:
+    transform 120ms var(--rs-ease),
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+}
+html
+  .workspace-stage
+  :is(.heading, .edit, .map-controls, .workspace-bar, .fullscreen-bar)
+  button,
+html
+  .workspace-stage
+  :is(
+    .icon-button,
+    .model-trigger,
+    .model-select,
+    .note-actions button:not(.primary),
+    .save-evidence
+  ) {
+  background: var(--rs-control-face);
+  border: 1px solid var(--rs-control-edge);
+  color: #505463;
+}
+html .workspace-stage .icon-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+html
+  .workspace-stage
+  :is(
+    .rs-heading-actions > button,
+    .create > button,
+    .setup > button,
+    .form > button,
+    .citation-form > button,
+    .bar > button,
+    .picker > button,
+    .note-actions .primary,
+    .chat-composer button[type='submit']
+  ) {
+  border: 1px solid #6553cc;
+  background: var(--rs-control-primary-face);
+  color: #fff;
+  box-shadow: var(--rs-control-primary-shadow);
+}
+html
+  .workspace-stage
+  :is(.rs-feature-page button, .note-actions button, .icon-button):disabled {
+  opacity: 0.48;
+  box-shadow: none;
+  transform: none;
+}
+html :is(button, [role='button'], input, textarea, select):focus-visible {
+  outline: 2px solid #8b7ce0;
+  outline-offset: 3px;
+}
+html .rs-input,
+html .el-input__wrapper,
+html .el-select__wrapper {
+  border-radius: 10px;
+  background: #fff;
+  box-shadow:
+    inset 0 1px 2px #20212405,
+    0 0 0 1px var(--rs-control-edge);
+}
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused {
+  box-shadow:
+    0 0 0 1px #8977db,
+    0 0 0 4px #6858d612;
+}
+html .workspace-stage .composer-box {
+  border: 1px solid #e0dfe8;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff, #fdfdfb);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 2px 4px #26213904,
+    0 10px 28px #26213909;
+  padding: 12px;
+}
+html .workspace-stage .composer-box:focus-within {
+  border-color: #b5a9e8;
+  box-shadow:
+    0 0 0 3px #6858d60b,
+    0 10px 30px #43377c0c;
+}
+html .workspace-stage .composer-box .el-button {
+  border: 1px solid #6553cc;
+  background: var(--rs-control-primary-face);
+  box-shadow: var(--rs-control-primary-shadow);
+  height: 42px;
+  width: 42px;
+  border-radius: 13px;
+}
+html .workspace-stage .composer-box .upload-trigger {
+  background: var(--rs-control-face);
+  border: 1px solid #e2dfed;
+  box-shadow: var(--rs-control-shadow);
+  color: var(--rs-primary);
+}
+html .workspace-stage .upload-trigger svg {
+  color: var(--rs-primary);
+  stroke: var(--rs-primary);
+  width: 22px;
+  height: 22px;
+}
+html .workspace-stage .composer-box .el-button.is-disabled {
+  border-color: #e9e7ef;
+  background: #efedf4;
+  box-shadow: inset 0 1px 0 #ffffffa0;
+  opacity: 1;
+}
+html .workspace-stage .composer-box .el-button.is-disabled svg {
+  color: #b9b1ce;
+  fill: #b9b1ce;
+}
+html .workspace-stage .paper-selector {
+  background: transparent;
+  border: 0;
+  padding-bottom: 4px;
+}
+html .workspace-stage .paper-option {
+  border: 1px solid #e6e2ef;
+  border-radius: 10px;
+  background: #fbfafc;
+  box-shadow: inset 0 1px 0 #fff;
+}
+html .workspace-stage .paper-option.selected {
+  border-color: #d6cfee;
+  background: linear-gradient(180deg, #f5f2fd, #eeebf8);
+}
+html :is(.workspace-stage,.history-drawer) .chat-history {
+  background: #f7f7f5;
+  border-color: #e7e5eb;
+}
+html :is(.workspace-stage,.history-drawer) .chat-history .session-card {
+  position: relative;
+  border: 1px solid #e6e5e9;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fff, #fcfcfa);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 2px 4px #27213003;
+  padding: 16px;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+html :is(.workspace-stage,.history-drawer) .session-card.active {
+  border-color: #d0c6ed;
+  background: linear-gradient(135deg, #faf8ff, #f3effb);
+  box-shadow:
+    inset 3px 0 0 #7c68d9,
+    0 3px 12px #6858d608;
+}
+html :is(.workspace-stage,.history-drawer) .session-actions button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+html .workspace-stage .message-row .assistant-material {
+  border: 1px solid #e5e3e9;
+  border-radius: 18px !important;
+  background: linear-gradient(155deg, #fff, #fefefd);
+  box-shadow: 0 2px 4px #26213903 !important;
+}
+html .workspace-stage .message-row .back-color {
+  border-color: #e1daef !important;
+  border-radius: 18px 18px 5px 18px !important;
+  background: linear-gradient(135deg, #f5f1fb, #efebf7);
+  box-shadow: inset 0 1px 0 #ffffff8c !important;
+}
+html .workspace-stage .message-row .is-thinking {
+  min-width: 210px;
+  max-width: 100%;
+  border-color: #ddd6ee;
+  box-shadow:
+    inset 3px 0 0 #c6b9e6,
+    0 4px 15px #6858d606 !important;
+}
+html .workspace-stage .message-row .thinking-state {
+  padding: 8px 0;
+  gap: 12px;
+  font-size: 13px;
+}
+html .workspace-stage .message-row .response-time {
+  border-top-color: #eeebf3;
+  font-size: 10px;
+  color: #8d8998;
+}
+html .rs-dialog,
+html .el-dialog,
+html .el-message-box {
+  border: 1px solid #e3dfea;
+  border-radius: 20px !important;
+  background: linear-gradient(145deg, #fff 0%, #fff 75%, #faf9fc);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 2px 8px #1913230c,
+    0 28px 90px #1913232b !important;
+}
+html .rs-dialog {
+  gap: 22px;
+  padding: 28px;
+}
+html .rs-dialog h2,
+html .el-dialog__title,
+html .el-message-box__title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #282432;
+}
+html .el-dialog {
+  padding: 26px;
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+}
+html .el-dialog__header {
+  padding: 0 36px 20px 0;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #efedf3;
+}
+html .el-dialog__body {
+  color: #64616e;
+  font-size: 13px;
+  line-height: 1.7;
+}
+html .el-dialog__footer {
+  border-top: 1px solid #efedf3;
+  margin-top: 20px;
+  padding: 18px 0 0;
+}
+html .el-message-box {
+  padding: 26px;
+  width: min(430px, calc(100vw - 32px));
+}
+html .el-message-box__header {
+  padding: 0 32px 18px 0;
+}
+html .el-message-box__content {
+  padding: 6px 0 20px;
+  line-height: 1.8;
+}
+html .el-message-box__btns {
+  padding: 18px 0 0;
+  border-top: 1px solid #efedf3;
+}
+html :is(.rs-close, .el-dialog__headerbtn, .el-message-box__headerbtn) {
+  width: 30px;
+  height: 30px;
+  top: 18px;
+  right: 18px;
+  border: 1px solid #eae7ef;
+  border-radius: 9px;
+  background: #f8f7fa;
+  box-shadow: inset 0 1px 0 #fff;
+  opacity: 1;
+  display: grid;
+  place-items: center;
+  color: #817a8c;
+}
+html .rs-popover,
+html .el-popper.is-light {
+  border: 1px solid #e4e0eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 8px 24px #27213012,
+    0 2px 4px #27213005;
+}
+html .rs-overlay,
+html .el-overlay {
+  background: rgb(18 15 29 / 0.34);
+  backdrop-filter: blur(5px);
+}
+html .rs-dialog[data-state='open'] {
+  animation: rs-modal-enter 220ms var(--rs-ease) !important;
+}
+html .rs-dialog[data-state='closed'] {
+  animation: rs-modal-exit 160ms var(--rs-ease) !important;
+}
+html .dialog-fade-enter-active .el-dialog,
+html .msgbox-fade-enter-active .el-message-box {
+  animation: rs-paper-enter 220ms var(--rs-ease) !important;
+}
+html .dialog-fade-leave-active .el-dialog,
+html .msgbox-fade-leave-active .el-message-box {
+  animation: rs-paper-exit 160ms var(--rs-ease) !important;
+}
+@keyframes rs-modal-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 6px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes rs-modal-exit {
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 4px)) scale(0.985);
+  }
+}
+@keyframes rs-paper-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rs-paper-exit {
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  html .rs-button.rs-control-outline:hover:not(:disabled),
+  html .rs-button.rs-control-secondary:hover:not(:disabled),
+  html .el-button:not(.el-button--primary):not(.is-disabled):hover {
+    border-color: #cec8dd;
+    box-shadow: var(--rs-control-hover-shadow);
+  }
+  html .rs-button.rs-control-primary:hover:not(:disabled),
+  html .el-button.el-button--primary:hover:not(.is-disabled) {
+    border-color: #7360dc;
+    box-shadow:
+      inset 0 1px 0 #ffffff40,
+      0 3px 5px #36288721,
+      0 7px 17px #6858d629;
+  }
+  html :is(.workspace-stage,.history-drawer) .session-card:hover {
+    border-color: #d5cce8;
+    box-shadow:
+      inset 0 1px 0 #fff,
+      0 4px 12px #27213007;
+  }
+  html .workspace-stage .icon-button:hover,
+  html :is(.rs-close, .el-dialog__headerbtn, .el-message-box__headerbtn):hover {
+    background: #f0ecf7;
+    border-color: #dcd4eb;
+    color: #6c56bd;
+  }
+}
+html[data-input='pointer']
+  :is(
+    .rs-button,
+    .el-button,
+    .workspace-stage .icon-button,
+    .workspace-stage .note-actions button,
+    .workspace-stage .rs-feature-page button
+  ):active:not(:disabled):not(.is-disabled):not(.task-card):not(.stat-card) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow:
+    inset 0 2px 4px #241c4312,
+    0 1px 1px #241c4303;
+}
+html[data-input='keyboard']
+  :is(.rs-dialog, .rs-overlay, .rs-popover, .el-dialog, .el-message-box) {
+  animation: none !important;
+  transition: none !important;
+}
+@media (max-width: 640px) {
+  html .rs-dialog,
+  html .el-dialog,
+  html .el-message-box {
+    padding: 22px;
+    border-radius: 17px !important;
+  }
+  html :is(.workspace-stage,.history-drawer) .session-card {
+    padding: 14px;
+  }
+  html .workspace-stage .composer-box {
+    border-radius: 17px;
+    padding: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html
+    :is(
+      .rs-button,
+      .el-button,
+      .rs-dialog,
+      .rs-overlay,
+      .rs-popover,
+      .el-dialog,
+      .el-message-box,
+      .session-card,
+      .icon-button,
+      .workspace-stage button
+    ) {
+    animation: none !important;
+    transition: none !important;
+  }
+  html[data-input='pointer']
+    :is(.rs-button, .el-button, .workspace-stage button):active {
+    transform: none !important;
+  }
+}
+/* Remaining native utility actions and semantic states. */
+html
+  .workspace-stage
+  :is(
+    .project-card .actions button,
+    .project-library .picker button,
+    .detail-actions button,
+    .evidence-inspector button,
+    .cell-detail button,
+    .citation button,
+    .pdf-state > button,
+    .overview .refresh,
+    .session-actions button,
+    .header-search,
+    .collapse-toggle,
+    .account-button,
+    .mobile-menu,
+    .navigation-close
+  ) {
+  border-radius: 10px;
+  transition:
+    transform 120ms var(--rs-ease),
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+}
+html
+  .workspace-stage
+  :is(
+    .project-card .actions button,
+    .detail-actions button,
+    .evidence-inspector button,
+    .cell-detail button,
+    .citation button,
+    .pdf-state > button,
+    .overview .refresh
+  ) {
+  border: 1px solid var(--rs-control-edge);
+  background: var(--rs-control-face);
+  box-shadow: var(--rs-control-shadow);
+}
+html
+  .workspace-stage
+  :is(
+    .evidence-filters button,
+    .mobile-reader-tabs button,
+    .mobile-note-tabs button
+  ) {
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+html
+  .workspace-stage
+  :is(
+    .evidence-filters button.active,
+    .mobile-reader-tabs button[aria-pressed='true'],
+    .mobile-note-tabs button[aria-pressed='true']
+  ) {
+  border-color: #ded6f1;
+  box-shadow: inset 0 1px 0 #ffffff9c;
+  background: linear-gradient(180deg, #f4f0fb, #eeebf8);
+}
+html :is(.el-dialog, .el-message-box) .el-button.el-button--primary {
+  box-shadow: var(--rs-control-primary-shadow);
+}
+html :is(.workspace-stage,.history-drawer) .session-actions button:focus-visible {
+  opacity: 1;
+  background: #eee9f8;
+  border-color: #d9cee9;
+}
+html .workspace-stage .icon-button:disabled {
+  box-shadow: none;
+  background: #f5f4f7;
+}
+html .workspace-stage .composer-box .el-textarea__inner {
+  font-family: inherit;
+}
+html .workspace-stage .chat-workspace {
+  height: calc(100dvh - 64px);
+}
+@media (max-width: 767px) {
+  html .workspace-stage .chat-workspace {
+    height: calc(100dvh - 58px);
+  }
+}
+
+html .el-drawer {
+  background: linear-gradient(135deg, #fff, #faf9fc);
+  box-shadow: -12px 0 50px #1913231a;
+  border-left: 1px solid #e3dfea;
+}
+html .el-drawer__header {
+  padding: 22px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #efedf3;
+  color: #282432;
+  font-size: 18px;
+}
+html .history-drawer .el-drawer__body {
+  padding: 0;
+}
+html .el-drawer__close-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #eae7ef;
+  border-radius: 9px;
+  background: #f8f7fa;
+}
+html .el-drawer__close-btn:hover {
+  background: #f0ecf7;
+}
+/* Focus is owned by the input wrapper or composer, avoiding double rectangular outlines. */
+html .el-input__inner:focus-visible {
+  outline: none;
+}
+html .workspace-stage .composer-box .el-textarea__inner:focus-visible {
+  outline: none;
+}
+html .workspace-stage .composer-box .el-textarea__inner {
+  background: transparent;
+}
+html .rs-button[aria-busy='true'],
+html .workspace-stage button[aria-busy='true'] {
+  cursor: wait;
+}
+/* Preserve secondary intent and accessibility for portaled drawers. */
+
+html[data-input=keyboard] .el-drawer{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){html .el-drawer,html .el-drawer__close-btn{animation:none!important;transition:none!important}}
+
+html .history-drawer .session-actions{opacity:1}
+html .history-drawer .chat-history>div:first-child>div>div:first-child{display:none}

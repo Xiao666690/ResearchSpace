@@ -102,7 +102,11 @@ const handleView = async (index: number, row: Document) => {
 // 删除文档 处理函数
 const handleDelete = async (index: number, row: Document) => {
   try {
-    await ElMessageBox.confirm(`确认删除 ${row.documentName}？该论文及笔记将从论文库移除。`, '删除论文', { type: 'warning' })
+    await ElMessageBox.confirm(
+      `确认删除 ${row.documentName}？该论文及笔记将从论文库移除。`,
+      '删除论文',
+      { type: 'warning' },
+    )
     const resp = await deleteDocument(knowledgeID, row.documentID)
     if (resp) {
       ElNotification({
@@ -111,7 +115,9 @@ const handleDelete = async (index: number, row: Document) => {
         type: 'success',
       })
       // 删除该行数据
-      tableData.value = tableData.value.filter(item => item.documentID !== row.documentID)
+      tableData.value = tableData.value.filter(
+        (item) => item.documentID !== row.documentID,
+      )
       // 同步移除对话页已绑定的该文档，避免残留 ID 仍在 Chat 会话中显示
       useDocumentListStore().deleteDocumentById(row.documentID)
     }
@@ -289,7 +295,10 @@ const formatterTime = (row: Document) => {
   if (!row || !row.createTime) {
     return ''
   }
-  const timestamp = row.createTime.toString().length === 10 ? Number(row.createTime) * 1000 : row.createTime
+  const timestamp =
+    row.createTime.toString().length === 10
+      ? Number(row.createTime) * 1000
+      : row.createTime
   const now = moment()
   const inputTime = moment(timestamp)
   const diffInHours = now.diff(inputTime, 'hours')
@@ -315,10 +324,24 @@ const isOpen = ref(true)
 
 <template>
   <div class="document-list-page w-full p-6">
-    <h1 class="text-2xl font-bold mb-5">论文文档</h1>
+    <header class="archive-header">
+      <div>
+        <p class="library-kicker">ARCHIVE / DOCUMENTS</p>
+        <h1>论文文档</h1>
+        <p class="library-description">上传、索引，再回到原文开展研究。</p>
+      </div>
+      <span class="library-description"
+        >{{ filterTableData.length }} 篇论文</span
+      >
+    </header>
     <div class="flex-col">
-      <div class="flex gap-3 mb-4 w-full">
-        <Input v-model="search" type="text" placeholder="搜索论文名称或标签" class="w-full max-w-xl" />
+      <div class="archive-tools flex gap-3 mb-4 w-full">
+        <Input
+          v-model="search"
+          type="text"
+          placeholder="搜索论文名称或标签"
+          class="w-full max-w-xl"
+        />
         <input
           ref="fileInput"
           type="file"
@@ -336,7 +359,11 @@ const isOpen = ref(true)
           上传文件
         </Button>
       </div>
-      <el-table :data="filterTableData" class="document-table w-full" max-height="calc(100vh - 190px)">
+      <el-table
+        :data="filterTableData"
+        class="document-table w-full"
+        max-height="calc(100vh - 190px)"
+      >
         <el-table-column
           fixed
           :formatter="formatterName"
@@ -345,7 +372,10 @@ const isOpen = ref(true)
         />
         <el-table-column label="标签" prop="documentTags" min-width="300">
           <template #default="{ row }">
-            <div class="document-tags" :title="(row.documentTags || []).join('、')">
+            <div
+              class="document-tags"
+              :title="(row.documentTags || []).join('、')"
+            >
               <el-tag
                 v-for="(tag, index) in (row.documentTags || []).slice(0, 3)"
                 :key="index"
@@ -354,7 +384,11 @@ const isOpen = ref(true)
               >
                 {{ tag }}
               </el-tag>
-              <el-tag v-if="(row.documentTags || []).length > 3" size="small" type="info">
+              <el-tag
+                v-if="(row.documentTags || []).length > 3"
+                size="small"
+                type="info"
+              >
                 +{{ row.documentTags.length - 3 }}
               </el-tag>
             </div>
@@ -461,12 +495,38 @@ const isOpen = ref(true)
 </template>
 
 <style scoped>
-.document-list-page { min-width: 0; }
-.document-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; }
-.document-tags .el-tag { max-width: 100%; }
-.document-table :deep(.el-table__cell) { padding: 7px 0; }
-.document-table :deep(.el-table__cell .cell) { line-height: 1.35; }
-/* 添加所需的自定义样式 */
+.document-list-page {
+  min-width: 0;
+}
+.document-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.document-tags .el-tag {
+  max-width: 100%;
+}
+.document-table :deep(.el-table__cell) {
+  padding: 7px 0;
+}
+.document-table :deep(.el-table__cell .cell) {
+  line-height: 1.35;
+}
+.slide-leave-active {
+  transition-duration: 140ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: none;
+  }
+  .slide-enter-from,
+  .slide-leave-to {
+    transform: none;
+  }
+}
 .ellipsis {
   white-space: nowrap;
   overflow: hidden;
@@ -482,11 +542,14 @@ const isOpen = ref(true)
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.5s;
+  transition:
+    transform 220ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 180ms ease;
 }
 .slide-enter-from,
 .slide-leave-to {
-  transform: translateX(100%);
+  transform: translateX(24px);
+  opacity: 0;
 }
 .loading-container {
   position: fixed;

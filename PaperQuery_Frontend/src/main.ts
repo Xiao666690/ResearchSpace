@@ -13,6 +13,14 @@ import '@/styles/var.less'
 import '@/styles/mixin.less'
 import '@/styles/global.less'
 import './assets/index.css'
+import '@/styles/researchspace.css'
+import '@/styles/feature-pages.css'
+import '@/styles/control-polish.css'
+
+// Keep keyboard interactions direct; press movement is pointer-only.
+document.documentElement.dataset.input = 'keyboard'
+window.addEventListener('pointerdown', () => { document.documentElement.dataset.input = 'pointer' }, { passive: true })
+window.addEventListener('keydown', () => { document.documentElement.dataset.input = 'keyboard' })
 
 // 创建 Pinia 实例
 const pinia = createPinia()

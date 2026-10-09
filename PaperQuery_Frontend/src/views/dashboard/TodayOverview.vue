@@ -1,83 +1,44 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ArrowUpRight, RefreshCw, BookOpen, Sparkles, Files, ArrowRight } from 'lucide-vue-next'
+import ReadingVessel from '@/components/ReadingVessel.vue'
 import { getDailyOverview, type DailyOverview } from '@/api/dashboard'
-
 const router = useRouter()
 const data = ref<DailyOverview | null>(null)
 const error = ref('')
 const loading = ref(false)
+const refreshedAt = ref('')
 let refreshTimer: ReturnType<typeof setInterval> | undefined
-
 const refresh = async () => {
+  if (loading.value) return
   loading.value = true
-  try { data.value = await getDailyOverview(); error.value = '' }
-  catch (cause: any) { error.value = cause?.message || '概览加载失败' }
+  try { data.value = await getDailyOverview(); error.value = ''; refreshedAt.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }
+  catch (cause: any) { error.value = cause?.message || '概览加载失败，请重试。' }
   finally { loading.value = false }
 }
-const openPaper = (knowledgeID: string, documentID: string, tab?: string) => router.push({
-  name: 'pdfInfo', params: { knowledgeID, documentID }, query: tab ? { tab } : {},
-})
-const openPost = (postID: string) => router.push({ name: 'threadDetail', params: { postid: postID } })
-const formatTime = (timestamp: number) => new Date(timestamp * 1000).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+const latestReading = computed(() => data.value?.readings[0])
+const openPaper = (knowledgeID: string, documentID: string, tab?: string) => router.push({ name: 'pdfInfo', params: { knowledgeID, documentID }, query: tab ? { tab } : {} })
 const formatDuration = (seconds: number) => seconds < 60 ? `${seconds} 秒` : `${Math.round(seconds / 60)} 分钟`
-
-onMounted(() => { refresh(); refreshTimer = setInterval(refresh, 60000) })
+const statusLabel = (status: string) => ({ pending: '待开始', running: '进行中', completed: '已完成', failed: '执行失败', cancelled: '已取消', queued: '排队中', done: '已完成' }[status] || status)
+onMounted(() => { refresh(); refreshTimer = setInterval(() => { if (document.visibilityState === 'visible') refresh() }, 60000) })
 onBeforeUnmount(() => clearInterval(refreshTimer))
 </script>
-
 <template>
   <main class="overview">
-    <section class="hero">
-      <div><p class="eyebrow">TODAY · RESEARCH WORKSPACE</p><h2>今日科研概览</h2><p>问答、研究、论文与论坛动态汇聚在同一工作空间。</p></div>
-      <button class="refresh" :disabled="loading" @click="refresh">{{ loading ? '更新中…' : '刷新数据' }}</button>
-    </section>
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-if="!data" class="empty">正在读取账户活动…</p>
-    <template v-else>
-      <section class="stats">
-        <div class="stat"><span>今日智能问答</span><strong>{{ data.stats.askCount }}</strong><small>次提问</small></div>
-        <div class="stat"><span>今日深度研究</span><strong>{{ data.stats.researchCount }}</strong><small>个目标</small></div>
-        <div class="stat"><span>今日上传论文</span><strong>{{ data.stats.uploadCount }}</strong><small>篇文档</small></div>
-        <div class="stat"><span>今日论文研读</span><strong>{{ data.stats.readingMinutes }}</strong><small>分钟</small></div>
-      </section>
-      <p class="library-total">资料库总览：{{ data.stats.libraries }} 个知识库 · {{ data.stats.documents }} 篇论文 · {{ data.stats.vectors }} 个索引块</p>
-      <div class="activity-grid">
-        <section class="panel"><header><h3>深度研究方向</h3><button @click="router.push('/home/research')">进入 Research →</button></header>
-          <p v-if="!data.researchGoals.length" class="muted">今天还没有创建研究任务。</p>
-          <button v-for="task in data.researchGoals" :key="task.taskID" class="row" @click="router.push('/home/research')"><strong>{{ task.goal }}</strong><span>{{ task.status }}</span></button>
-        </section>
-        <section class="panel"><header><h3>今日研读与笔记</h3><button @click="router.push('/home/library/notes')">查看笔记集 →</button></header>
-          <p v-if="!data.readings.length" class="muted">今天还没有研读记录。打开论文并保持页面在前台即可开始计时。</p>
-          <div v-for="item in data.readings" :key="`${item.knowledgeID}:${item.documentID}`" class="row reading">
-            <div><strong>{{ item.documentName }}</strong><small>{{ item.knowledgeName }} · {{ formatDuration(item.seconds) }}</small></div>
-            <button v-if="item.hasNote" @click="openPaper(item.knowledgeID, item.documentID, 'note')">查看笔记</button>
-            <button v-else @click="openPaper(item.knowledgeID, item.documentID, 'note')">写笔记</button>
-          </div>
-        </section>
-        <section class="panel"><header><h3>今日上传的论文</h3><button @click="router.push('/home/library')">进入论文库 →</button></header>
-          <p v-if="!data.uploadedPapers.length" class="muted">今天还没有上传论文。</p>
-          <button v-for="item in data.uploadedPapers" :key="`${item.knowledgeID}:${item.documentID}`" class="row" @click="openPaper(item.knowledgeID, item.documentID)"><strong>{{ item.documentName }}</strong><span>{{ item.knowledgeName }} · {{ item.topic }}</span></button>
-        </section>
-        <!-- 论坛模块已隐藏 - 恢复时取消此注释即可
-        <section class="panel"><header><h3>今日发帖</h3><button @click="router.push('/home/forum/threads')">进入论坛 →</button></header>
-          <p v-if="!data.myPosts.length" class="muted">今天还没有发帖。</p>
-          <button v-for="post in data.myPosts" :key="post.postID" class="row" @click="openPost(post.postID)"><strong>{{ post.title }}</strong><span>{{ formatTime(post.published) }}</span></button>
-        </section>
-        <section class="panel wide"><header><h3>论坛新帖</h3><button @click="router.push('/home/forum/threads')">浏览全部 →</button></header>
-          <p v-if="!data.newPosts.length" class="muted">暂无新帖。</p>
-          <button v-for="post in data.newPosts" :key="post.postID" class="row" @click="openPost(post.postID)"><strong>{{ post.title }}</strong><span>{{ post.author }} · {{ formatTime(post.published) }}</span></button>
-        </section>
-        -->
-      </div>
+    <header class="overview-heading"><div><p class="eyebrow">YOUR RESEARCH, IN ORBIT</p><h2>把探索，变成积累。</h2><p class="heading-sub">今日科研概览<span v-if="data"> · {{ data.date }}</span></p></div><button class="refresh" :disabled="loading" @click="refresh"><RefreshCw :size="14" :class="{ spinning: loading }" />{{ loading ? '更新中' : '刷新' }}<span v-if="refreshedAt && !loading" class="refresh-time">{{ refreshedAt }}</span></button></header>
+    <div v-if="error" class="error" role="alert"><span>{{ error }}{{ data ? ' 已保留上一次的数据。' : '' }}</span><button :disabled="loading" @click="refresh">重试</button></div>
+    <div v-if="!data && loading" class="loading-state" role="status"><div class="loading-orbit"/><p>正在汇集你的研究足迹…</p></div>
+    <template v-if="data">
+      <section class="hero-grid"><ReadingVessel :minutes="data.stats.readingMinutes" :papers="data.readings.length"/><div class="continue-panel"><p class="eyebrow">NEXT SMALL STEP</p><h3>继续你的探索</h3><p class="continue-caption">从一篇论文、一个问题开始。</p><button v-if="latestReading" class="continue-paper" @click="openPaper(latestReading.knowledgeID,latestReading.documentID)"><BookOpen :size="20"/><div><span>接着阅读</span><strong>{{ latestReading.documentName }}</strong><small>{{ latestReading.knowledgeName }}</small></div><ArrowUpRight :size="18"/></button><button v-else class="continue-paper" @click="router.push('/home/library')"><BookOpen :size="20"/><div><span>建立你的阅读轨迹</span><strong>打开论文库，开始研读</strong><small>论文在前台加载后记录阅读时间</small></div><ArrowUpRight :size="18"/></button><div class="quick-actions"><button @click="router.push('/home/research')"><Sparkles :size="15"/>开始研究<ArrowRight :size="14"/></button><button @click="router.push('/home/library')"><Files :size="15"/>管理论文<ArrowRight :size="14"/></button></div></div></section>
+      <section class="stats" aria-label="今日活动统计"><div class="stat"><span>智能问答</span><strong>{{ data.stats.askCount }}<small>次提问</small></strong></div><div class="stat"><span>深度研究</span><strong>{{ data.stats.researchCount }}<small>个目标</small></strong></div><div class="stat"><span>上传论文</span><strong>{{ data.stats.uploadCount }}<small>篇文档</small></strong></div><div class="stat"><span>知识库藏</span><strong>{{ data.stats.documents }}<small>篇论文 / {{ data.stats.libraries }} 个库</small></strong></div></section>
+      <div class="activity-grid"><section class="panel"><header><div><p class="eyebrow">RESEARCH TRAJECTORY</p><h3>研究方向</h3></div><button @click="router.push('/home/research')" aria-label="查看全部研究任务"><ArrowUpRight :size="18"/></button></header><div v-if="!data.researchGoals.length" class="empty-state"><Sparkles :size="22"/><p>今天的研究，还留着无限可能。</p><button @click="router.push('/home/research')">创建研究任务 →</button></div><button v-for="task in data.researchGoals" :key="task.taskID" class="row task-row" @click="router.push('/home/research')"><strong>{{ task.goal }}</strong><span class="status-chip" :data-status="task.status">{{ statusLabel(task.status) }}</span></button></section>
+      <section class="panel"><header><div><p class="eyebrow">READ & REFLECT</p><h3>研读与思考</h3></div><button @click="router.push('/home/library/notes')" aria-label="查看全部笔记"><ArrowUpRight :size="18"/></button></header><div v-if="!data.readings.length" class="empty-state"><BookOpen :size="22"/><p>把第一段阅读时光，留在这里。</p><button @click="router.push('/home/library')">去阅读一篇论文 →</button></div><div v-for="item in data.readings" :key="`${item.knowledgeID}:${item.documentID}`" class="row reading"><button class="reading-title" @click="openPaper(item.knowledgeID,item.documentID)"><strong>{{ item.documentName }}</strong><small>{{ item.knowledgeName }} · {{ formatDuration(item.seconds) }}</small></button><button class="note-link" @click="openPaper(item.knowledgeID,item.documentID,'note')">{{ item.hasNote ? '查看笔记' : '写笔记' }}</button></div></section>
+      <section class="panel upload-panel"><header><div><p class="eyebrow">NEW MATERIAL</p><h3>今日入库</h3></div><button @click="router.push('/home/library')">论文库 <ArrowUpRight :size="14"/></button></header><div v-if="!data.uploadedPapers.length" class="empty-state compact"><Files :size="20"/><p>暂无新论文。已有资料也值得重新发现。</p></div><button v-for="item in data.uploadedPapers" :key="`${item.knowledgeID}:${item.documentID}`" class="row" @click="openPaper(item.knowledgeID,item.documentID)"><strong>{{ item.documentName }}</strong><span>{{ item.knowledgeName }} · {{ item.topic }}</span><ArrowUpRight :size="14"/></button></section></div>
+      <footer class="overview-footer">{{ data.stats.vectors.toLocaleString() }} 个索引块连接你的研究资料<span>时间有迹，探索无界。</span></footer>
     </template>
   </main>
 </template>
-
 <style scoped>
-.overview { width: 100%; min-width: 0; }.hero { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border: 1px solid #e3e6ef; border-radius: 16px; background: linear-gradient(110deg, #fff, #f0f3ff); }.hero h2 { font-size: 24px; font-weight: 700; color: #1f2937; }.hero p:last-child { color: #64748b; font-size: 13px; }.eyebrow { color: #6d5bd0; font-size: 10px; font-weight: 700; letter-spacing: .12em; }.refresh { padding: 8px 12px; border: 1px solid #c7c9e5; border-radius: 8px; background: white; white-space: nowrap; font-size: 12px; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }.stat { padding: 17px 18px; border: 1px solid #e3e6ef; border-radius: 14px; background: white; }.stat span,.stat small { display: block; color: #64748b; font-size: 12px; }.stat strong { display: inline-block; margin: 7px 4px 0 0; font-size: 30px; color: #242437; }.stat small { display: inline; }.library-total { margin: 12px 2px 18px; color: #7a8291; font-size: 12px; }
-.activity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }.panel { min-width: 0; min-height: 130px; border: 1px solid #e3e6ef; border-radius: 14px; padding: 16px 18px; background: white; }.panel.wide { grid-column: 1 / -1; min-height: 94px; }.panel header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }.panel h3 { font-size: 16px; font-weight: 700; }.panel header button { color: #6254b9; font-size: 12px; white-space: nowrap; }.row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; padding: 10px 2px; border-bottom: 1px solid #f0f1f5; text-align: left; }.row:last-child { border-bottom: 0; }.row strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 550; }.row span,.row small { display: block; flex: none; color: #8a90a0; font-size: 11px; }.row:not(.reading):hover strong { color: #6254b9; }.reading > div { min-width: 0; }.reading button { flex: none; padding: 5px 8px; border-radius: 6px; background: #f0efff; color: #6254b9; font-size: 11px; }.muted,.empty { color: #94a3b8; font-size: 13px; padding: 16px 0; }.error { margin: 12px 0; color: #b91c1c; font-size: 13px; }
-@media(max-width: 1050px) { .stats { grid-template-columns: repeat(2, 1fr); } .activity-grid { grid-template-columns: 1fr; }.panel.wide { grid-column: auto; } }
-@media(max-width: 600px) { .hero { align-items: flex-start; }.stats { gap: 8px; }.stat { padding: 12px; }.stat strong { font-size: 24px; } }
+.overview{width:100%;min-width:0;max-width:1320px;margin:0 auto;color:var(--rs-ink,#202124)}.overview-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:4px 0 24px}.eyebrow{color:var(--rs-muted,#687078);font-size:9px;font-weight:650;letter-spacing:.16em}.overview-heading h2{font-size:29px;font-weight:550;letter-spacing:-.04em;margin:8px 0}.heading-sub{font-size:12px;color:var(--rs-muted,#687078)}.refresh{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--rs-border,#E5E7EB);border-radius:8px;background:white;font-size:12px;white-space:nowrap}.refresh-time{color:var(--rs-muted,#687078);font-size:10px}.hero-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}.continue-panel{display:flex;flex-direction:column;padding:26px;background:white;border:1px solid var(--rs-border,#E5E7EB);border-radius:16px}.continue-panel h3{font-size:23px;font-weight:500;letter-spacing:-.035em;margin-top:10px}.continue-caption{font-size:12px;color:var(--rs-muted,#687078);margin:7px 0 20px}.continue-paper{display:flex;align-items:center;gap:14px;text-align:left;padding:15px;border:1px solid #E7E3F5;background:#F9F8FC;border-radius:10px;min-width:0;color:var(--rs-primary,#6858D6)}.continue-paper>div{flex:1;min-width:0}.continue-paper span,.continue-paper small{display:block;font-size:10px;color:var(--rs-muted,#687078)}.continue-paper strong{display:block;font-size:13px;color:var(--rs-ink,#202124);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:5px 0}.quick-actions{display:flex;gap:10px;margin-top:auto;padding-top:16px}.quick-actions button{display:flex;align-items:center;gap:8px;font-size:12px;padding:8px 10px;border-radius:8px;background:#F7F7F4;flex:1;justify-content:center}.quick-actions button:first-child{color:var(--rs-primary,#6858D6)}.stats{display:grid;grid-template-columns:repeat(4,1fr);padding:22px 0;margin:18px 0;border-top:1px solid var(--rs-border,#E5E7EB);border-bottom:1px solid var(--rs-border,#E5E7EB)}.stat{padding:0 24px;border-right:1px solid var(--rs-border,#E5E7EB)}.stat:first-child{padding-left:3px}.stat:last-child{border:0}.stat>span{display:block;font-size:11px;color:var(--rs-muted,#687078)}.stat strong{display:block;font-size:27px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:7px;line-height:1.3}.stat small{font-size:10px;font-weight:400;color:var(--rs-muted,#687078);margin-left:8px}.activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{min-width:0;background:white;border:1px solid var(--rs-border,#E5E7EB);border-radius:12px;padding:20px}.panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.panel h3{font-size:16px;font-weight:550;margin-top:5px}.panel header>button{display:flex;align-items:center;gap:5px;color:var(--rs-primary,#6858D6);font-size:11px;padding:6px;border-radius:6px}.upload-panel{grid-column:1/-1}.row{display:flex;align-items:center;width:100%;gap:12px;text-align:left;padding:14px 0;border-bottom:1px solid #F0F0ED;min-width:0}.row:last-child{border:0}.row strong{display:block;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}.row>span,.row small{font-size:11px;color:var(--rs-muted,#687078)}.row small{display:block;margin-top:5px}.status-chip{flex:none;padding:4px 7px;border-radius:5px;background:#F4F4F1}.status-chip[data-status='running']{background:#F0EDFA;color:#6858D6}.status-chip[data-status='completed'],.status-chip[data-status='done']{background:#EDF5EF;color:#397451}.status-chip[data-status='failed']{background:#FBEFEB;color:#A24835}.reading-title{flex:1;min-width:0;text-align:left}.note-link{flex:none;color:var(--rs-primary,#6858D6);font-size:11px;background:#F3F1FA;padding:6px 8px;border-radius:6px}.empty-state{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:22px 2px;color:#A4A2AD}.empty-state p{font-size:12px;color:var(--rs-muted,#687078)}.empty-state button{font-size:12px;color:var(--rs-primary,#6858D6)}.compact{flex-direction:row;align-items:center;padding:14px 2px}.overview-footer{display:flex;justify-content:space-between;gap:12px;color:#93979C;font-size:10px;padding:20px 2px}.error{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;margin-bottom:16px;border-radius:8px;background:#FBEFEB;color:#A24835;font-size:12px}.error button{text-decoration:underline}.loading-state{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;min-height:300px;font-size:13px;color:var(--rs-muted,#687078)}.loading-orbit{height:35px;width:35px;border:1px solid #E5E2ED;border-top-color:#6858D6;border-radius:50%;animation:spin 1s linear infinite}.spinning{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}button{transition:transform 120ms var(--rs-ease,cubic-bezier(.23,1,.32,1)),background-color 140ms ease}button:active:not(:disabled){transform:scale(.98)}button:focus-visible{outline:2px solid var(--rs-primary,#6858D6);outline-offset:3px}button:disabled{opacity:.55;cursor:wait}@media(hover:hover) and (pointer:fine){.row:hover strong{color:var(--rs-primary,#6858D6)}.quick-actions button:hover{background:#EFEDF5}.refresh:hover{background:#F9F8FC}}@media(max-width:1000px){.hero-grid{grid-template-columns:1fr}.stat{padding:0 12px}.stat small{display:block;margin:3px 0 0}}@media(max-width:620px){.overview-heading h2{font-size:24px}.refresh-time{display:none}.stats{grid-template-columns:repeat(2,1fr);row-gap:20px}.stat:nth-child(2){border:0}.stat:nth-child(3){padding-left:3px}.stat small{display:inline;margin-left:6px}.activity-grid{grid-template-columns:1fr}.upload-panel{grid-column:auto}.continue-panel{padding:22px}.row>span:not(.status-chip){display:none}.overview-footer span{display:none}}@media(prefers-reduced-motion:reduce){button{transition:none}button:active{transform:none!important}.spinning,.loading-orbit{animation:none}}
 </style>

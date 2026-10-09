@@ -8,6 +8,8 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ModeSwitch: typeof import('./../../components/ModeSwitch.vue')['default']
+    ReadingVessel: typeof import('./../../components/ReadingVessel.vue')['default']
+    ResearchFeatureHeader: typeof import('./../../components/research/FeatureHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SideBar: typeof import('./../../components/SideBar.vue')['default']
@@ -121,5 +123,6 @@ declare module 'vue' {
     UiToastViewport: typeof import('./../../components/ui/toast/ToastViewport.vue')['default']
     Utils: typeof import('./../../components/utils/index.ts')['default']
     UtilsSidebar: typeof import('./../../components/utils/sidebar.ts')['default']
+    WorkspaceHeader: typeof import('./../../components/WorkspaceHeader.vue')['default']
   }
 }

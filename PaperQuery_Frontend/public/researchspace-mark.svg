@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="ResearchSpace">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#263A76"/><stop offset="1" stop-color="#6758C6"/></linearGradient></defs>
-  <rect x="4" y="4" width="88" height="88" rx="24" fill="url(#g)"/>
-  <circle cx="47" cy="47" r="27" fill="none" stroke="#EDEBFF" stroke-width="5" opacity=".9"/>
-  <path d="M30 63V31h16c10 0 16 5 16 13 0 6-4 10-10 12l12 13" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="70" cy="27" r="7" fill="#EFC578"/>
-  <circle cx="73" cy="69" r="4" fill="#9DD7EB"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#EFEDF9"/><svg x="4" y="4" width="56" height="56" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><title>ResearchSpace 研究轨道</title><ellipse cx="32" cy="32" rx="27" ry="17" transform="rotate(-32 32 32)" stroke="#B58C53" stroke-width="1.7" opacity=".75"/><path d="M23 47V18H32.5C40.2 18 44 21.2 44 26.5C44 31.8 40.2 35 32.5 35H23M32.5 35L44 47" stroke="#6858D6" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="52" cy="16" r="4" fill="#B58C53"/><circle cx="13" cy="48" r="2" fill="#6858D6" opacity=".55"/></svg></svg>

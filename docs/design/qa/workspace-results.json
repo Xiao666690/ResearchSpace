@@ -1,0 +1,885 @@
+{
+  "mode": "isolated browser fixtures; no backend requests",
+  "results": [
+    {
+      "path": "dashboard",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 604
+    },
+    {
+      "path": "projects",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 281
+    },
+    {
+      "path": "library",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 269
+    },
+    {
+      "path": "library/notes",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 244
+    },
+    {
+      "path": "knowledge/preview",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 237
+    },
+    {
+      "path": "Chat",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 292
+    },
+    {
+      "path": "research",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 363
+    },
+    {
+      "path": "team",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 345
+    },
+    {
+      "path": "projects/preview/overview",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 425
+    },
+    {
+      "path": "projects/preview/library",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 379
+    },
+    {
+      "path": "projects/preview/chat",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 437
+    },
+    {
+      "path": "projects/preview/research",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 508
+    },
+    {
+      "path": "projects/preview/timeline",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 413
+    },
+    {
+      "path": "projects/preview/compare",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 409
+    },
+    {
+      "path": "projects/preview/evidence",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 417
+    },
+    {
+      "path": "projects/preview/studio",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 385
+    },
+    {
+      "path": "projects/preview/map",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 481
+    },
+    {
+      "path": "projects/preview/collaboration",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 423
+    },
+    {
+      "path": "pdfInfo/preview/preview",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 386
+    },
+    {
+      "path": "note/fullscreen/preview/preview",
+      "viewport": 1440,
+      "overflow": false,
+      "width": 1440,
+      "textLength": 320
+    },
+    {
+      "path": "dashboard",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 451
+    },
+    {
+      "path": "projects",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 145
+    },
+    {
+      "path": "library",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 133
+    },
+    {
+      "path": "library/notes",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 108
+    },
+    {
+      "path": "knowledge/preview",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 101
+    },
+    {
+      "path": "Chat",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 135
+    },
+    {
+      "path": "research",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 211
+    },
+    {
+      "path": "team",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 209
+    },
+    {
+      "path": "projects/preview/overview",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 248
+    },
+    {
+      "path": "projects/preview/library",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 202
+    },
+    {
+      "path": "projects/preview/chat",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 239
+    },
+    {
+      "path": "projects/preview/research",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 315
+    },
+    {
+      "path": "projects/preview/timeline",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 236
+    },
+    {
+      "path": "projects/preview/compare",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 232
+    },
+    {
+      "path": "projects/preview/evidence",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 240
+    },
+    {
+      "path": "projects/preview/studio",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 208
+    },
+    {
+      "path": "projects/preview/map",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 304
+    },
+    {
+      "path": "projects/preview/collaboration",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 246
+    },
+    {
+      "path": "pdfInfo/preview/preview",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 116
+    },
+    {
+      "path": "note/fullscreen/preview/preview",
+      "viewport": 390,
+      "overflow": false,
+      "width": 390,
+      "textLength": 127
+    }
+  ],
+  "errors": [],
+  "keyboardFocused": true,
+  "drawer": 1,
+  "logout": true,
+  "reading": [
+    {
+      "minutes": 0,
+      "text": "TIME, WELL SPENT\n\n每一分钟，\n都沉淀为新的理解。\n0分钟\n\n今日研读 0 篇论文\n\n沙瓶以 60 分钟为视觉刻度，累计时长不设上限。\n\n60\n30\n0"
+    },
+    {
+      "minutes": 60,
+      "text": "TIME, WELL SPENT\n\n每一分钟，\n都沉淀为新的理解。\n60分钟\n\n今日研读 0 篇论文\n\n沙瓶以 60 分钟为视觉刻度，累计时长不设上限。\n\n60\n30\n0"
+    },
+    {
+      "minutes": 85,
+      "text": "TIME, WELL SPENT\n\n每一分钟，\n都沉淀为新的理解。\n85分钟\n\n今日研读 0 篇论文\n\n沙瓶以 60 分钟为视觉刻度，累计时长不设上限。\n\n60\n30\n0"
+    }
+  ],
+  "requests": [
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/dashboard/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/knowledges/getKnowledgeList",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/notes/collection",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/document/getDocumentList",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/research/tasks",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/team/info",
+      "method": "GET"
+    },
+    {
+      "path": "/team/requests",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/knowledges/getKnowledgeList",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/research/tasks",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/timeline",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/compare",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/evidence",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/studio",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/evidence",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/graph",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/collaboration/members",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/collaboration/comments",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/collaboration/assignments",
+      "method": "GET"
+    },
+    {
+      "path": "/research/tasks",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/evidence",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/compare",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/document/getFile",
+      "method": "GET"
+    },
+    {
+      "path": "/document/summarize",
+      "method": "GET"
+    },
+    {
+      "path": "/note/getnote",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/document/getFile",
+      "method": "GET"
+    },
+    {
+      "path": "/note/getnote",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/dashboard/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/knowledges/getKnowledgeList",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/notes/collection",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/document/getDocumentList",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/research/tasks",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/team/info",
+      "method": "GET"
+    },
+    {
+      "path": "/team/requests",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/knowledges/getKnowledgeList",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/research/tasks",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/timeline",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/compare",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/evidence",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/studio",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/evidence",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/graph",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/collaboration/members",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/collaboration/comments",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/collaboration/assignments",
+      "method": "GET"
+    },
+    {
+      "path": "/research/tasks",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/evidence",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/compare",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview",
+      "method": "GET"
+    },
+    {
+      "path": "/projects/preview/documents",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/document/getFile",
+      "method": "GET"
+    },
+    {
+      "path": "/document/summarize",
+      "method": "GET"
+    },
+    {
+      "path": "/note/getnote",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/document/getFile",
+      "method": "GET"
+    },
+    {
+      "path": "/note/getnote",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/dashboard/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/dashboard/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/dashboard/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    },
+    {
+      "path": "/dashboard/overview",
+      "method": "GET"
+    },
+    {
+      "path": "/health/ready",
+      "method": "GET"
+    }
+  ]
+}

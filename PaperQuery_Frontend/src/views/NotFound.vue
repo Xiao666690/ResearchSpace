@@ -1,20 +1,7 @@
-<template>
-  <div class="h-svh">
-    <div
-      class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 dark:text-white"
-    >
-      <div class="flex items-center mb-8">
-        <span class="text-4xl font-bold mr-4">404</span>
-        <div class="border-l-4 border-black pl-4">
-          <h1 class="text-4xl font-semibold text-gray-800">Page Not Found</h1>
-        </div>
-      </div>
-      <p class="text-lg text-gray-600 mb-8">
-        The page you are looking for doesn't exist or has been removed.
-      </p>
-      <Link href="/" class="px-6 py-3 underline font-semibold rounded-md">
-        Go to Home
-      </Link>
-    </div>
-  </div>
-</template>
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { Orbit, ArrowLeft, ArrowRight } from 'lucide-vue-next'
+const router=useRouter()
+</script>
+<template><main class="missing-page"><div class="missing-orbit" aria-hidden="true"><Orbit :size="80" stroke-width=".7"/></div><p class="missing-code">404 · OUT OF ORBIT</p><h1>这条路径暂时没有发现。</h1><p>页面可能已移动，或地址不完整。你的研究可以从工作空间继续。</p><div><button class="rs-button" @click="router.back()"><ArrowLeft :size="16"/>返回上一页</button><router-link class="rs-button" :to="'/home/dashboard'">回到研究空间<ArrowRight :size="16"/></router-link></div></main></template>
+<style scoped>.missing-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:32px;background:var(--rs-canvas);text-align:center;color:var(--rs-ink)}.missing-orbit{color:var(--rs-gold);margin-bottom:12px}.missing-code{font-size:10px;letter-spacing:.14em;color:var(--rs-muted)}h1{font-size:clamp(24px,4vw,38px);font-weight:500}p{font-size:13px;color:var(--rs-muted);max-width:450px;line-height:1.8}.missing-page>div:last-child{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px}button,a{display:flex;gap:8px;align-items:center;padding:11px 16px;border-radius:8px;border:1px solid var(--rs-line);background:var(--rs-surface);font-size:12px;text-decoration:none}a{background:var(--rs-primary);color:white;border-color:var(--rs-primary)}</style>

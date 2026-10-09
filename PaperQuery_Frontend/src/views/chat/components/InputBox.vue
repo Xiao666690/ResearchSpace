@@ -8,15 +8,20 @@
       class="textarea"
       type="textarea"
       :autosize="{ minRows: 1, maxRows: 8 }"
-      placeholder="请输入你的问题"
+      placeholder="提出一个问题，或继续探索刚才的发现…"
+      aria-label="输入研究问题"
       resize="none"
       @keydown.enter.prevent="handleButtonClick"
     />
     <div>
-      <el-button :disabled="!input" @click="handleButtonClick">
+      <el-button
+        aria-label="发送问题"
+        :disabled="!input.trim()"
+        @click="handleButtonClick"
+      >
         <IconoirProvider
           :icon-props="{
-            color: '#000000',
+            color: '#ffffff',
             'stroke-width': 1,
             width: '2em',
             height: '2em',
@@ -41,10 +46,25 @@
   --el-button-disabled-bg-color: none;
   --el-button-active-border-color: #cec7e5;
 }
-.composer-box :deep(.el-button:hover) { background: #d5c9ff; }
+.composer-box :deep(.el-button:hover) {
+  background: #d5c9ff;
+}
 
-.composer-box { border: 1px solid #e3e3e6; border-radius: 18px; background: #fff; box-shadow: 0 7px 24px rgba(32,32,36,.07); transition: border-color .18s ease, box-shadow .18s ease; }
-.composer-box:focus-within { border-color: #cfc8e7; box-shadow: 0 8px 28px rgba(74,62,137,.10), 0 0 0 3px rgba(109,91,208,.07); }
+.composer-box {
+  border: 1px solid #e3e3e6;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 7px 24px rgba(32, 32, 36, 0.07);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.composer-box:focus-within {
+  border-color: #cfc8e7;
+  box-shadow:
+    0 8px 28px rgba(74, 62, 137, 0.1),
+    0 0 0 3px rgba(109, 91, 208, 0.07);
+}
 
 .el-textarea {
   font-family:
@@ -67,6 +87,44 @@
   --el-input-bg-color: none;
   --el-input-border-color: none;
   --el-input-hover-border-color: none;
+}
+.composer-box {
+  width: min(760px, calc(100% - 32px));
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 5px 24px #24202c0a;
+}
+.composer-box .el-button {
+  height: 38px;
+  width: 38px;
+  padding: 7px;
+  border: 0;
+  background: var(--rs-primary);
+  border-radius: 9px;
+}
+.composer-box :deep(.el-button:hover) {
+  background: #594ac2;
+}
+.composer-box :deep(.el-textarea__inner) {
+  padding: 7px 10px;
+  line-height: 1.7;
+  box-shadow: none !important;
+  background: transparent;
+  font-size: 14px;
+}
+.composer-box .el-button.is-disabled {
+  background: #dfdce9;
+  color: #aaa;
+}
+.composer-box :deep(.el-button svg) {
+  height: 20px;
+  width: 20px;
+}
+@media (max-width: 600px) {
+  .composer-box {
+    width: calc(100% - 20px);
+    padding: 8px;
+  }
 }
 </style>
 

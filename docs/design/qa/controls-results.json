@@ -1,0 +1,23 @@
+{
+  "mode": "isolated browser fixtures",
+  "dialog": {
+    "width": 680,
+    "height": 511.453125
+  },
+  "mobileDialog": {
+    "left": 16,
+    "right": 374,
+    "viewport": 390
+  },
+  "historyDrawer": {
+    "width": 358,
+    "focusInside": true
+  },
+  "hover": {
+    "shadow": "rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(24, 29, 43, 0.047) 0px 1.37824px 2.37824px 0px, rgba(24, 29, 43, 0.04) 0px 3.75648px 8.8912px 0px",
+    "radius": "10px"
+  },
+  "press": "matrix(0.98, 0, 0, 0.98, 0, 1)",
+  "reduced": "0s",
+  "errors": []
+}

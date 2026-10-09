@@ -2,7 +2,7 @@
 <template>
   <div
     ref="messageContainer"
-    class="flex justify-center overflow-y-auto p-8 mb-14"
+    class="chat-message-stream flex justify-center overflow-y-auto p-8 mb-14"
   >
     <div class="w-full max-w-4xl">
       <Empty v-show="messageList.length === 0" />
@@ -43,19 +43,33 @@ async function saveEvidence(message: Message) {
   const projectId = String(route.params.projectId || '')
   if (!projectId || !message.citations?.length) return
   try {
-    const { value } = await ElMessageBox.prompt('为这条研究观点命名', '保存到证据看板', {
-      inputValue: message.content.replace(/\[C\d+\]/g, '').slice(0, 60),
-      inputValidator: input => !!input.trim() || '请输入标题',
-    })
+    const { value } = await ElMessageBox.prompt(
+      '为这条研究观点命名',
+      '保存到证据看板',
+      {
+        inputValue: message.content.replace(/\[C\d+\]/g, '').slice(0, 60),
+        inputValidator: (input) => !!input.trim() || '请输入标题',
+      },
+    )
     const claim = await createClaim(projectId, value.trim(), message.content)
     let saved = 0
     for (const citation of message.citations) {
       if (!citation.knowledgeID) continue
-      try { await addClaimCitation(projectId, claim.claim_id, citation); saved++ } catch { /* remaining citations still save */ }
+      try {
+        await addClaimCitation(projectId, claim.claim_id, citation)
+        saved++
+      } catch {
+        /* remaining citations still save */
+      }
     }
-    ElMessage.success(saved ? `已保存观点及 ${saved} 条原文证据` : '已保存观点，但引用未能通过原文核验')
+    ElMessage.success(
+      saved
+        ? `已保存观点及 ${saved} 条原文证据`
+        : '已保存观点，但引用未能通过原文核验',
+    )
   } catch (error: any) {
-    if (error !== 'cancel' && error !== 'close') ElMessage.error(error?.response?.data?.detail || '保存失败')
+    if (error !== 'cancel' && error !== 'close')
+      ElMessage.error(error?.response?.data?.detail || '保存失败')
   }
 }
 
@@ -83,4 +97,13 @@ const scrollToBottom = () => {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped>
+.chat-message-stream {
+  padding: 28px 24px 100px;
+}
+@media (max-width: 600px) {
+  .chat-message-stream {
+    padding: 16px 12px 100px;
+  }
+}
+</style>

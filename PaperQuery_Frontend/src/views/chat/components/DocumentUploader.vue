@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-button circle class="upload-trigger" title="添加论文" @click="openDialog">
+    <el-button circle class="upload-trigger" title="添加论文" aria-label="添加论文" @click="openDialog">
       <IconoirProvider
         :icon-props="{ color: '#ffffff', 'stroke-width': 2, width: '2em', height: '2em' }"
       >
@@ -8,9 +8,9 @@
       </IconoirProvider>
     </el-button>
 
-    <el-dialog v-model="dialogVisible" title="添加对话论文" width="680px" append-to-body>
+    <el-dialog v-model="dialogVisible" title="添加对话论文" width="min(680px, calc(100vw - 32px))" append-to-body>
       <el-tabs v-model="sourceMode">
-        <el-tab-pane label="从 Library 选择" name="library">
+        <el-tab-pane label="从论文库选择" name="library">
           <el-select
             v-model="selectedKnowledgeID"
             class="w-full"
@@ -73,7 +73,7 @@
 
           <div class="mt-5 flex items-center justify-between rounded-lg border border-gray-200 p-4">
             <div>
-              <div class="text-sm font-medium text-gray-900">同时加入 Library</div>
+              <div class="text-sm font-medium text-gray-900">同时加入论文库</div>
               <div class="mt-1 text-xs text-gray-500">关闭时仅用于当前聊天，不进入长期论文库</div>
             </div>
             <el-switch v-model="addToLibrary" />

@@ -21,10 +21,10 @@
     </main>
     <div v-if="selectedText" class="selected-quote">
       <span>已选第 {{ selectedPage }} 页：{{ selectedText.slice(0, 140) }}{{ selectedText.length > 140 ? '…' : '' }}</span>
-      <button type="button" @click="emit('clear-selection')">×</button>
+      <button type="button" aria-label="清除选中引文" @click="emit('clear-selection')">×</button>
     </div>
     <form class="chat-composer" @submit.prevent="send">
-      <textarea v-model="draft" rows="2" placeholder="询问这篇论文或探索相关研究…" @keydown.enter.exact.prevent="send" />
+      <textarea aria-label="向当前论文提问" v-model="draft" rows="2" placeholder="询问这篇论文或探索相关研究…" @keydown.enter.exact.prevent="send" />
       <button type="submit" :disabled="sending || !draft.trim()">{{ sending ? '回答中…' : '发送' }}</button>
     </form>
   </div>
@@ -47,6 +47,7 @@
 .chat-composer textarea { flex: 1; min-width: 0; resize: vertical; border: 1px solid #d1d5db; border-radius: 8px; padding: 7px; font-size: 13px; }
 .chat-composer button { align-self: end; border-radius: 8px; background: #356fce; color: white; padding: 8px 12px; white-space: nowrap; }
 .chat-composer button:disabled { opacity: .5; }
+.chat-header h1{font-size:14px;font-weight:550}.chat-header p{font-size:11px;line-height:1.5}.model-select{min-width:94px;border-radius:8px;border-color:var(--rs-line)}.model-menu{border-radius:10px;box-shadow:var(--rs-shadow-float);animation:paper-menu 160ms var(--rs-ease)}.chat-messages>p{font-size:12px;line-height:1.8;padding:18px 4px;color:var(--rs-muted)}.chat-composer textarea:focus-visible{outline:2px solid var(--rs-primary);outline-offset:2px}.chat-composer button{background:var(--rs-primary)}.selected-quote{background:var(--rs-primary-soft)}@keyframes paper-menu{from{opacity:0;transform:translateY(-3px) scale(.98)}to{opacity:1;transform:none}}@media(max-width:680px){.chat-header{flex-wrap:wrap}.chat-composer textarea{font-size:16px}}@media(prefers-reduced-motion:reduce){.model-menu{animation:none}}
 </style>
 
 <script setup lang="ts">

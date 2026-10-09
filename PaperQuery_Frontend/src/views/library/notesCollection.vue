@@ -14,7 +14,13 @@ const grouped = computed(() => {
   const query = search.value.trim().toLowerCase()
   const result = new Map<string, NoteEntry[]>()
   for (const note of notes.value) {
-    if (query && !`${note.knowledgeName} ${note.documentName} ${note.preview}`.toLowerCase().includes(query)) continue
+    if (
+      query &&
+      !`${note.knowledgeName} ${note.documentName} ${note.preview}`
+        .toLowerCase()
+        .includes(query)
+    )
+      continue
     const group = result.get(note.knowledgeName) || []
     group.push(note)
     result.set(note.knowledgeName, group)
@@ -22,26 +28,45 @@ const grouped = computed(() => {
   return [...result.entries()]
 })
 onMounted(async () => {
-  try { notes.value = await getNoteCollection() }
-  catch (cause: any) { error.value = cause?.message || '笔记集加载失败' }
-  finally { loading.value = false }
+  try {
+    notes.value = await getNoteCollection()
+  } catch (cause: any) {
+    error.value = cause?.message || '笔记集加载失败'
+  } finally {
+    loading.value = false
+  }
 })
-const openNote = (note: NoteEntry) => router.push({ name: 'noteFullscreen',
-  params: { knowledgeID: note.knowledgeID, documentID: note.documentID } })
+const openNote = (note: NoteEntry) =>
+  router.push({
+    name: 'noteFullscreen',
+    params: { knowledgeID: note.knowledgeID, documentID: note.documentID },
+  })
 const removeNote = async (note: NoteEntry) => {
   const key = `${note.knowledgeID}:${note.documentID}`
   try {
-    await ElMessageBox.confirm(`确定删除《${note.documentName}》的笔记吗？论文文档不会被删除。`, '删除笔记', {
-      type: 'warning', confirmButtonText: '删除笔记', cancelButtonText: '取消',
-    })
-  } catch { return }
+    await ElMessageBox.confirm(
+      `确定删除《${note.documentName}》的笔记吗？论文文档不会被删除。`,
+      '删除笔记',
+      {
+        type: 'warning',
+        confirmButtonText: '删除笔记',
+        cancelButtonText: '取消',
+      },
+    )
+  } catch {
+    return
+  }
   deleting.value = key
   try {
     await deleteNote(note.knowledgeID, note.documentID)
-    notes.value = notes.value.filter(item => `${item.knowledgeID}:${item.documentID}` !== key)
+    notes.value = notes.value.filter(
+      (item) => `${item.knowledgeID}:${item.documentID}` !== key,
+    )
     ElMessage.success('笔记已删除')
   } catch (cause: any) {
-    ElMessage.error(cause?.response?.data?.detail || cause?.message || '删除笔记失败')
+    ElMessage.error(
+      cause?.response?.data?.detail || cause?.message || '删除笔记失败',
+    )
   } finally {
     deleting.value = ''
   }
@@ -51,24 +76,57 @@ const removeNote = async (note: NoteEntry) => {
 <template>
   <main class="notes-page">
     <header>
-      <div><p class="eyebrow">LIBRARY · NOTES</p><h1>论文笔记集</h1><p>按知识库整理已写笔记，点击可回到论文和对应笔记。</p></div>
+      <div>
+        <p class="eyebrow">ARCHIVE / MARGINALIA</p>
+        <h1>让思考，留下自己的痕迹。</h1>
+        <p>按知识库整理已写笔记，点击可回到论文和对应笔记。</p>
+      </div>
       <button @click="router.push('/home/library')">返回论文库</button>
     </header>
-    <input v-model="search" class="search" placeholder="搜索知识库、论文或笔记内容" />
+    <input
+      v-model="search"
+      class="search"
+      aria-label="搜索论文笔记"
+      placeholder="搜索知识库、论文或笔记内容"
+    />
     <p v-if="loading">正在加载笔记…</p>
     <p v-else-if="error" class="error">{{ error }}</p>
-    <p v-else-if="!grouped.length" class="empty">{{ notes.length ? '没有匹配的笔记' : '还没有已保存的论文笔记。打开一篇论文，切换到“笔记”即可开始。' }}</p>
-    <section v-for="[knowledgeName, entries] in grouped" :key="knowledgeName" class="group">
-      <h2>{{ knowledgeName }} <small>{{ entries.length }} 篇论文</small></h2>
+    <p v-else-if="!grouped.length" class="empty">
+      {{
+        notes.length
+          ? '没有匹配的笔记'
+          : '还没有已保存的论文笔记。打开一篇论文，切换到“笔记”即可开始。'
+      }}
+    </p>
+    <section
+      v-for="[knowledgeName, entries] in grouped"
+      :key="knowledgeName"
+      class="group"
+    >
+      <h2>
+        {{ knowledgeName }} <small>{{ entries.length }} 篇论文</small>
+      </h2>
       <div class="note-grid">
-        <article v-for="entry in entries" :key="`${entry.knowledgeID}:${entry.documentID}`" class="note-card">
+        <article
+          v-for="entry in entries"
+          :key="`${entry.knowledgeID}:${entry.documentID}`"
+          class="note-card"
+        >
           <button class="note-open" @click="openNote(entry)">
             <strong>{{ entry.documentName }}</strong>
             <span>{{ entry.preview || '打开笔记' }}</span>
             <em>阅读论文并查看笔记 →</em>
           </button>
-          <button class="note-delete" :disabled="deleting === `${entry.knowledgeID}:${entry.documentID}`" @click="removeNote(entry)">
-            {{ deleting === `${entry.knowledgeID}:${entry.documentID}` ? '删除中…' : '删除笔记' }}
+          <button
+            class="note-delete"
+            :disabled="deleting === `${entry.knowledgeID}:${entry.documentID}`"
+            @click="removeNote(entry)"
+          >
+            {{
+              deleting === `${entry.knowledgeID}:${entry.documentID}`
+                ? '删除中…'
+                : '删除笔记'
+            }}
           </button>
         </article>
       </div>
@@ -77,19 +135,191 @@ const removeNote = async (note: NoteEntry) => {
 </template>
 
 <style scoped>
-.notes-page { width: 100%; min-width: 0; padding: 30px; color: #1f2937; }
-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-header h1 { font-size: 26px; font-weight: 700; } header p { color: #64748b; font-size: 13px; }
-.eyebrow { color: #6d5bd0; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
-header button { border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; background: white; white-space: nowrap; }
-.search { width: min(100%, 560px); margin: 24px 0; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: white; }
-.group { margin: 10px 0 28px; }.group h2 { margin-bottom: 12px; font-size: 18px; font-weight: 650; }.group small { margin-left: 8px; color: #94a3b8; font-size: 12px; }
-.note-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.note-card { display: flex; flex-direction: column; gap: 9px; text-align: left; padding: 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; }
-.note-card:hover { border-color: #8e83d8; box-shadow: 0 3px 12px #6d5bd01a; }
-.note-open { display: flex; flex: 1; flex-direction: column; gap: 9px; width: 100%; text-align: left; }
-.note-open strong { font-size: 14px; }.note-open span { min-height: 40px; color: #64748b; font-size: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }.note-open em { color: #6152bd; font-size: 12px; font-style: normal; }
-.note-delete { align-self: flex-end; padding: 5px 8px; border-radius: 6px; color: #b42318; font-size: 12px; }
-.note-delete:hover { background: #fef3f2; }.note-delete:disabled { cursor: wait; opacity: .5; }
-.empty,.error { padding: 36px; color: #64748b; text-align: center; border: 1px dashed #cbd5e1; border-radius: 12px; }
+.notes-page {
+  width: 100%;
+  min-width: 0;
+  padding: 30px;
+  color: #1f2937;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+header h1 {
+  font-size: 26px;
+  font-weight: 700;
+}
+header p {
+  color: #64748b;
+  font-size: 13px;
+}
+.eyebrow {
+  color: #6d5bd0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+header button {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: white;
+  white-space: nowrap;
+}
+.search {
+  width: min(100%, 560px);
+  margin: 24px 0;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: white;
+}
+.group {
+  margin: 10px 0 28px;
+}
+.group h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 650;
+}
+.group small {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+.note-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.note-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-align: left;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+}
+.note-card:hover {
+  border-color: #8e83d8;
+  box-shadow: 0 3px 12px #6d5bd01a;
+}
+.note-open {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+}
+.note-open strong {
+  font-size: 14px;
+}
+.note-open span {
+  min-height: 40px;
+  color: #64748b;
+  font-size: 12px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.note-open em {
+  color: #6152bd;
+  font-size: 12px;
+  font-style: normal;
+}
+.note-delete {
+  align-self: flex-end;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: #b42318;
+  font-size: 12px;
+}
+.note-delete:hover {
+  background: #fef3f2;
+}
+.note-delete:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+.empty,
+.error {
+  padding: 36px;
+  color: #64748b;
+  text-align: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}
+.notes-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 36px clamp(16px, 3vw, 40px);
+}
+header h1 {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.4;
+}
+.eyebrow {
+  letter-spacing: 0.16em;
+}
+.note-card {
+  padding: 20px;
+  min-height: 205px;
+  box-shadow: none;
+  border-radius: 14px;
+}
+.note-open strong {
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.note-open span {
+  font-size: 13px;
+  line-height: 1.9;
+  -webkit-line-clamp: 3;
+}
+.note-open em {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 12px;
+}
+.note-delete {
+  border-top: 1px solid var(--rs-line);
+  padding-top: 10px;
+  border-radius: 0;
+  width: 100%;
+  text-align: right;
+}
+.group h2 {
+  font-size: 17px;
+}
+.group small {
+  font-size: 11px;
+}
+.search {
+  height: 43px;
+}
+@media (max-width: 600px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  header h1 {
+    font-size: 25px;
+  }
+  .notes-page {
+    padding: 24px 16px;
+  }
+  .empty,
+  .error {
+    padding: 24px;
+  }
+}
 </style>

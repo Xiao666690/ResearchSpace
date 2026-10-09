@@ -14,7 +14,7 @@ import { login, register } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import ResearchHeroVisual from './ResearchHeroVisual.vue'
+import LoginCosmosVisual from './LoginCosmosVisual.vue'
 
 const username = ref('')
 const password = ref('')
@@ -23,6 +23,9 @@ const teamName = ref('')
 const registering = ref(false)
 const showPassword = ref(false)
 const busy = ref(false)
+const authMessage = ref('')
+const authFailed = ref(false)
+const ambientPaused = ref(false)
 const router = useRouter()
 const url = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
 
@@ -48,19 +51,25 @@ const features = [
 ]
 
 function switchMode() {
+  if (busy.value) return
   registering.value = !registering.value
   confirmPassword.value = ''
   showPassword.value = false
+  authMessage.value = ''
 }
 
 async function submitAuth() {
   if (busy.value) return
   if (registering.value && password.value !== confirmPassword.value) {
+    authFailed.value = true
+    authMessage.value = '两次输入的密码不一致，请重新确认。'
     ElNotification.error({ title: '注册失败', message: '两次输入的密码不一致' })
     return
   }
 
   busy.value = true
+  authMessage.value = ''
+  authFailed.value = false
   try {
     if (registering.value) {
       const res = await register(url, {
@@ -70,6 +79,7 @@ async function submitAuth() {
       })
       registering.value = false
       confirmPassword.value = ''
+      authMessage.value = '账户已创建，请使用新账户登录。'
       ElNotification.success({
         title: '注册成功',
         message: res?.msg || '请使用新账户登录',
@@ -85,6 +95,8 @@ async function submitAuth() {
     })
     await router.push('/home')
   } catch (error) {
+    authFailed.value = true
+    authMessage.value = error instanceof Error ? error.message : '暂时无法连接，请稍后重试。'
     ElNotification({
       title: registering.value ? '注册失败' : '登录失败',
       type: 'error',
@@ -99,38 +111,41 @@ async function submitAuth() {
 
 <template>
   <main id="home" class="rs-page">
+    <LoginCosmosVisual :paused="ambientPaused" />
     <div class="rs-page-inner">
       <header class="rs-header">
         <a class="rs-brand" href="#home" aria-label="研境 ResearchSpace 首页">
           <span class="rs-brand-mark"
-            ><img src="/researchspace-mark.svg" alt=""
+            ><img src="/brand/researchspace-dark.svg" alt=""
           /></span>
-          <span>研境 ResearchSpace</span>
+          <span>ResearchSpace<span class="rs-brand-cn">研境 · 智能研究工作台</span></span>
         </a>
         <nav class="rs-nav" aria-label="页面导航">
           <a class="rs-nav-active" href="#home" aria-current="page">首页</a>
           <a href="#features">功能</a>
           <a href="#about">关于</a>
         </nav>
-        <span class="rs-header-spacer" aria-hidden="true" />
+        <button class="rs-motion-toggle" type="button" :aria-pressed="ambientPaused" @click="ambientPaused = !ambientPaused">{{ ambientPaused ? '继续环境动效' : '暂停环境动效' }}</button>
       </header>
 
       <div class="rs-main-row" :class="{ 'rs-registering': registering }">
         <section id="about" class="rs-hero" aria-labelledby="rs-hero-title">
-          <ResearchHeroVisual class="rs-hero-visual" />
           <div class="rs-hero-copy">
+            <p class="rs-hero-eyebrow">BEYOND THE KNOWN</p>
             <h1 id="rs-hero-title" class="rs-hero-title">
-              <span>Think Different.</span>
-              <span>Create Excellence.</span>
+              <span>向未知，</span>
+              <span>再进一步。</span>
             </h1>
-            <h2>可信智能研究工作台</h2>
-            <p>让研究更高效、更可靠。</p>
+            <h2>每一次阅读，都是发现的开始。</h2>
+            <p>连接论文、证据与灵感。<br />让值得探索的问题，抵达可信的答案。</p>
+            <div class="rs-hero-coordinate" aria-hidden="true"><span class="rs-coordinate-line" /> TIME · EVIDENCE · DISCOVERY</div>
           </div>
         </section>
 
         <section class="rs-auth-card" aria-labelledby="rs-auth-title">
           <div class="rs-auth-content">
             <div class="rs-auth-heading">
+              <span class="rs-auth-kicker">YOUR RESEARCH STARTS HERE</span>
               <h2 id="rs-auth-title">
                 {{ registering ? '创建账户' : '欢迎回来' }}
               </h2>
@@ -145,7 +160,7 @@ async function submitAuth() {
 
             <form class="rs-auth-form" @submit.prevent="submitAuth">
               <div class="rs-field">
-                <Label for="username" class="rs-sr-only">用户名</Label>
+                <Label for="username" class="rs-field-label">用户名</Label>
                 <UserRound :size="22" :stroke-width="1.8" aria-hidden="true" />
                 <Input
                   id="username"
@@ -157,7 +172,7 @@ async function submitAuth() {
                 />
               </div>
               <div class="rs-field">
-                <Label for="password" class="rs-sr-only">密码</Label>
+                <Label for="password" class="rs-field-label">密码</Label>
                 <LockKeyhole
                   :size="22"
                   :stroke-width="1.8"
@@ -180,6 +195,7 @@ async function submitAuth() {
                   type="button"
                   :aria-label="showPassword ? '隐藏密码' : '显示密码'"
                   :aria-pressed="showPassword"
+                  :disabled="busy"
                   @click="showPassword = !showPassword"
                 >
                   <EyeOff v-if="showPassword" :size="21" aria-hidden="true" />
@@ -189,7 +205,7 @@ async function submitAuth() {
 
               <template v-if="registering">
                 <div class="rs-field">
-                  <Label for="confirm-password" class="rs-sr-only"
+                  <Label for="confirm-password" class="rs-field-label"
                     >确认密码</Label
                   >
                   <LockKeyhole
@@ -208,7 +224,7 @@ async function submitAuth() {
                   />
                 </div>
                 <div class="rs-field">
-                  <Label for="team-name" class="rs-sr-only"
+                  <Label for="team-name" class="rs-field-label"
                     >团队名（可选）</Label
                   >
                   <MessagesSquare
@@ -236,7 +252,7 @@ async function submitAuth() {
                 :aria-busy="busy"
               >
                 <span>{{
-                  busy ? '请稍候…' : registering ? '注册账户' : '登录'
+                  busy ? (registering ? '正在创建账户…' : '正在进入工作台…') : registering ? '创建研究账户' : '进入研究空间'
                 }}</span>
                 <ArrowRight
                   v-if="!busy"
@@ -245,12 +261,13 @@ async function submitAuth() {
                   aria-hidden="true"
                 />
               </Button>
+              <p v-if="authMessage" class="rs-auth-message" :class="{ 'is-error': authFailed }" role="status" aria-live="polite">{{ authMessage }}</p>
             </form>
           </div>
 
           <div class="rs-auth-switch">
             <span>{{ registering ? '已有账户？' : '没有账号？' }}</span>
-            <button type="button" @click="switchMode">
+            <button type="button" :disabled="busy" @click="switchMode">
               {{ registering ? '返回登录' : '立即注册' }}
             </button>
           </div>

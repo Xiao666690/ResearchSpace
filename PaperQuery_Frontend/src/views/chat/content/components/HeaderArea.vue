@@ -9,16 +9,10 @@
       <div class="text-sm font-medium text-gray-900">
         {{ title }}
       </div>
-      <div
-        v-if="documents.length === 0"
-        class="mt-1 text-xs text-amber-600"
-      >
+      <div v-if="documents.length === 0" class="mt-1 text-xs text-amber-600">
         尚未指定论文，当前为普通模型对话
       </div>
-      <div
-        v-else
-        class="mt-2 flex flex-wrap justify-end gap-2"
-      >
+      <div v-else class="mt-2 flex flex-wrap justify-end gap-2">
         <span
           v-for="document in documents"
           :key="document.documentID || document.documentName"
@@ -49,6 +43,36 @@ const title = computed(() => {
 </script>
 
 <style scoped>
-.chat-header { border-bottom: 1px solid #eeeeef; background: rgba(255,255,255,.88); backdrop-filter: blur(14px); }
-.document-chip { border: 1px solid #e7e7e9; border-radius: 8px; background: #f8f8f9; }
+.chat-header {
+  border-bottom: 1px solid #eeeeef;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+}
+.document-chip {
+  border: 1px solid #e7e7e9;
+  border-radius: 8px;
+  background: #f8f8f9;
+}
+.chat-header {
+  background: #fff;
+  padding: 18px 20px;
+  border-color: var(--rs-line);
+}
+.document-chip {
+  background: #f4f2fa;
+  border-color: #e7e2f2;
+  color: #6355ac;
+}
+@media (max-width: 600px) {
+  .chat-header {
+    flex-direction: column;
+    padding: 14px;
+  }
+  .chat-header > div:last-child {
+    text-align: left;
+  }
+  .chat-header > div:last-child > div {
+    justify-content: flex-start;
+  }
+}
 </style>
