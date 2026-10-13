@@ -1,90 +1,69 @@
+"""Single document Worker; use the same configuration/indexes as main.py."""
 import time
 import traceback
 import sys
+from core.common.runtime import configure_runtime
+configure_runtime()
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-
-import dotenv
-dotenv.load_dotenv()
-from colorama import Fore, Style
-from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
-from langchain_core.embeddings import Embeddings
-
-from core.agent.dataprocessAgent import *
-from core.backend.crud.crud_document import (
-    get_document_status_equal_zero,
-    update_document_content,
-    update_document_status,
-    reset_stuck_documents,
-)
-from core.backend.crud.crud_knowledge import update_knowledge_content
+import os
+from sqlalchemy import func
 from core.backend.db.database import SessionLocal
-from core.llm.LLM import *
-from core.vectordb.chromadb import *
+from core.backend.db.models import Document, Knowledge
+from core.backend.crud.crud_document import reset_stuck_documents
 from core.backend.services.document_path import resolve_document_path
+from core.agent.dataprocessAgent import DataProcessAgent
+from core.llm.LLM import LLM
+from core.retrieval.embeddings import ONNXEmbeddings
+from core.vectordb.chromadb import AcadeChroma
 
-
-class ONNXEmbeddings(Embeddings):
-    """使用 ChromaDB 内置 ONNX 模型，无需 API key，不依赖 sentence-transformers"""
-    def __init__(self):
-        cache_dir = os.getenv("CHROMA_ONNX_CACHE_DIR")
-        if cache_dir:
-            os.makedirs(cache_dir, exist_ok=True)
-            ONNXMiniLM_L6_V2.DOWNLOAD_PATH = cache_dir
-        self._ef = ONNXMiniLM_L6_V2()
-
-    def embed_documents(self, texts):
-        return self._ef(texts)
-
-    def embed_query(self, text):
-        return self._ef([text])[0]
-
-
-db = SessionLocal()
-
-def test_add():
-    dotenv.load_dotenv()
-    llms=LLM()
-    chroma_db=AcadeChroma("/data1/wyyzah-work/PaperQuery_Backend/res/layer2","/data1/wyyzah-work/PaperQuery_Backend/res/layer2",ONNXEmbeddings(),llms.get_llm('openai'))
-    dp=DataProcessAgent(llms.get_llm('openai'),chroma_db)
-    directory = os.getenv("document_SAVE_DIR")
-
-    dp.batch_add_newdocument(directory,"kid1")
+def process_next_document(db, processor):
+    document = db.query(Document).filter(Document.documentStatus == 0).order_by(Document.id).first()
+    if document is None:
+        return False
+    identity = (document.uid, document.knowledgeID, document.lid)
+    document.documentStatus = 1
+    db.commit()
+    try:
+        result = processor.add_newpaper(resolve_document_path(document.documentPath), document.knowledgeID)
+        document.documentVector = result['documentVector']
+        document.primaryClassification = result['Primary Classification']
+        document.secondaryClassification = result['Secondary Classification']
+        document.tags = ','.join(result['Research Direction Tags'])
+        document.documentDescription = result['Abstract']
+        document.documentStatus = 2
+        db.flush()
+        knowledge = db.query(Knowledge).filter_by(knowledgeID=document.knowledgeID, lid=document.lid).first()
+        if knowledge:
+            count, vectors = db.query(func.count(Document.id), func.coalesce(func.sum(Document.documentVector), 0)).filter(
+                Document.knowledgeID == document.knowledgeID, Document.lid == document.lid,
+                Document.documentStatus == 2).one()
+            knowledge.documentNum, knowledge.vectorNum = count, vectors
+        db.commit()
+        print(f'[worker] Indexed {identity[0]} in {identity[1]}')
+        return True
+    except Exception:
+        db.rollback()
+        row = db.query(Document).filter_by(uid=identity[0], knowledgeID=identity[1], lid=identity[2]).first()
+        if row:
+            row.documentStatus = 0
+            db.commit()
+        raise
 
 if __name__ == '__main__':
-    dotenv.load_dotenv()
-    llm=LLM()
-    chroma_db=AcadeChroma(os.getenv("CHROMA_LAYER1_DIR"),os.getenv("CHROMA_LAYER2_DIR"),ONNXEmbeddings(),llm)
-    dp=DataProcessAgent(llm,chroma_db)
-    db = SessionLocal()
-    # 启动时清理残留的"处理中"文档，避免进程中断后状态卡在 1 导致永不重试
-    reset_stuck_documents(db)
+    llm = LLM()
+    chroma = AcadeChroma(os.getenv('CHROMA_LAYER1_DIR'), os.getenv('CHROMA_LAYER2_DIR'), ONNXEmbeddings(), llm)
+    processor = DataProcessAgent(llm, chroma)
+    with SessionLocal() as db:
+        reset_stuck_documents(db)
     while True:
-        document=get_document_status_equal_zero(db)
-        time.sleep(3)
-        if document:
-            print(Fore.RED,f"开始处理{document.documentName}",Style.RESET_ALL)
-            print(type(document))
-
-            print(Fore.BLUE,f"更新状态为 1",Style.RESET_ALL)
-            document.documentStatus=1
-            update_document_status(db,document)
-            try:
-                result=dp.add_newpaper(resolve_document_path(document.documentPath),document.knowledgeID)
-            except Exception as e:
-                print(Fore.RED, f"文档处理失败，已回滚为排队状态: {e}", Style.RESET_ALL)
-                traceback.print_exc()
-                document.documentStatus=0
-                update_document_status(db,document)
-                time.sleep(10)
-                continue
-            print(result)
-            result["uid"]=document.uid
-            print(Fore.YELLOW,f"更新向量,",Style.RESET_ALL)
-            print(Fore.YELLOW,f"更新描述标签信息,",Style.RESET_ALL)
-            update_document_content(db,result)
-            print(Fore.YELLOW,f"更新知识库信息,",Style.RESET_ALL)
-            ## 更新知识库状态, 总向量数+N,总文件数＋1
-            update_knowledge_content(db,result["documentVector"],1,document.knowledgeID)
-            print(Fore.GREEN,f"处理完成更新状态为 2,",Style.RESET_ALL)
+        try:
+            with SessionLocal() as db:
+                processed = process_next_document(db, processor)
+            time.sleep(1 if processed else 3)
+        except KeyboardInterrupt:
+            break
+        except Exception:
+            traceback.print_exc()
+            time.sleep(10)

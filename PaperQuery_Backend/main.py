@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 import asyncio
 
-import dotenv
+from core.common.runtime import configure_runtime
 
-dotenv.load_dotenv()
+configure_runtime()
 
 import os
 
@@ -62,7 +62,6 @@ def _init_role_and_default_team():
             print(f"[team] 默认团队就绪 team_id={admin.lid}")
 
 
-_init_role_and_default_team()
 
 
 def _build_skill_registry():
@@ -102,33 +101,18 @@ def _build_research_orchestrator(registry, llm, ctx):
     return ResearchOrchestrator(planner, executor, Verifier())
 
 
-class ONNXEmbeddings(Embeddings):
-    """使用 ChromaDB 内置 ONNX 模型，无需 API key，不依赖 sentence-transformers"""
-    def __init__(self):
-        cache_dir = os.getenv("CHROMA_ONNX_CACHE_DIR")
-        if cache_dir:
-            os.makedirs(cache_dir, exist_ok=True)
-            ONNXMiniLM_L6_V2.DOWNLOAD_PATH = cache_dir
-        self._ef = ONNXMiniLM_L6_V2()
-
-    def embed_documents(self, texts):
-        return self._ef(texts)
-
-    def embed_query(self, text):
-        return self._ef([text])[0]
+from core.retrieval.embeddings import ONNXEmbeddings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 离线模型首次加载和推理可能超过前端普通请求的 10 秒预算。
-    # 启动时预热，后续选择论文文本可直接使用已缓存的翻译器。
-    try:
-        from core.backend.services.translate import Translator
-        await asyncio.to_thread(Translator().translate, "This paper presents a research method.")
-        print("[translate] 离线英中模型预热完成")
-    except Exception as exc:
-        print(f"[translate] 离线模型暂不可用：{exc}")
-    app.llm = LLM()
+    _init_role_and_default_team()
+    app.llm = LLM() if os.getenv('DEEPSEEK_API_KEY', '').strip() else None
+    app.chat_agents = {}
+    app.chat_agent = None
+    app.decision_engine = None
+    app.research_orchestrator = None
+    app.skill_registry = _build_skill_registry()
     app.chroma_db = AcadeChroma(
         os.getenv("CHROMA_LAYER1_DIR"),
         os.getenv("CHROMA_LAYER2_DIR"),
@@ -136,30 +120,33 @@ async def lifespan(app: FastAPI):
         app.llm
     )
 
-    # 为每个模型创建 ChatAgent
-    # 非流式 LLM 使用 deepseek 作为默认
-    app.chat_agent = ChatAgent(
-        app.llm.get_llm('deepseek'),
-        app.llm.get_stream_llm('deepseek'),
-        app.chroma_db
-    )
+    if app.llm is not None:
+        # 为每个模型创建 ChatAgent
+        # 非流式 LLM 使用 deepseek 作为默认
+        app.chat_agent = ChatAgent(
+            app.llm.get_llm('deepseek'),
+            app.llm.get_stream_llm('deepseek'),
+            app.chroma_db
+        )
 
-    # 只注册实际配置过的模型，避免未配置模型静默回退为 DeepSeek。
-    app.chat_agents = {'deepseek': app.chat_agent}
-    for model_name in ('kimi', 'zhipu'):
-        if model_name in app.llm.get_all_llms():
-            app.chat_agents[model_name] = ChatAgent(
-                app.llm.get_llm(model_name),
-                app.llm.get_stream_llm(model_name),
-                app.chroma_db,
-            )
+        # 只注册实际配置过的模型，避免未配置模型静默回退为 DeepSeek。
+        app.chat_agents = {'deepseek': app.chat_agent}
+        for model_name in ('kimi', 'zhipu'):
+            if model_name in app.llm.get_all_llms():
+                app.chat_agents[model_name] = ChatAgent(
+                    app.llm.get_llm(model_name),
+                    app.llm.get_stream_llm(model_name),
+                    app.chroma_db,
+                )
 
-    # V2: DecisionEngine（轻量，基于 LLM Judge）
-    app.decision_engine = DecisionEngine(app.llm.get_llm('deepseek'))
+        # V2: DecisionEngine（轻量，基于 LLM Judge）
+        app.decision_engine = DecisionEngine(app.llm.get_llm('deepseek'))
 
     # 保留现有 ONNX 向量库；本地 BGE-M3 与重排模型用于二阶段混合检索。
     # 模型缺失或加载失败时继续使用原有 ONNX 检索，已上传论文无需重建索引。
-    app.retrieval_pipeline = None
+    from core.retrieval.onnx_hybrid import OnnxHybridRetriever
+    app.retrieval_pipeline = OnnxHybridRetriever()
+    app.chroma_db.retrieval_enhancer = app.retrieval_pipeline
     embedding_path = settings.BGE_M3_MODEL_PATH
     reranker_path = settings.RERANKER_MODEL_PATH
     if (
@@ -176,18 +163,21 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             print(f"[retrieval] 本地模型加载失败，继续使用 ONNX：{exc}")
 
-    # V2: SkillRegistry + ResearchOrchestrator
-    app.skill_registry = _build_skill_registry()
-    research_ctx = {
-        "chroma_db": app.chroma_db,
-        "llm": app.llm.get_llm('deepseek'),
-        "decision_engine": app.decision_engine,
-        "db_factory": SessionLocal,
-    }
-    app.research_orchestrator = _build_research_orchestrator(
-        app.skill_registry, app.llm.get_llm('deepseek'), research_ctx
-    )
-    print(f"[V2] Research Orchestrator 初始化完成（{len(app.skill_registry.names())} 个 Skills）")
+    if app.llm is not None:
+        # V2: SkillRegistry + ResearchOrchestrator
+        research_ctx = {
+            "chroma_db": app.chroma_db,
+            "llm": app.llm.get_llm('deepseek'),
+            "decision_engine": app.decision_engine,
+            "db_factory": SessionLocal,
+        }
+        app.research_orchestrator = _build_research_orchestrator(
+            app.skill_registry, app.llm.get_llm('deepseek'), research_ctx
+        )
+        print(f"[V2] Research Orchestrator 初始化完成（{len(app.skill_registry.names())} 个 Skills）")
+
+    else:
+        print('[config] Fill DEEPSEEK_API_KEY in PaperQuery_Backend/.env and restart to enable AI.')
 
     yield
     # Clean up the ML models and release resources
@@ -200,6 +190,20 @@ app = FastAPI(
     description="ResearchSpace 研究项目、论文证据与协作 API",
     lifespan=lifespan,
 )
+@app.middleware('http')
+async def require_ai_configuration(request, call_next):
+    path = request.url.path
+    ai_request = (
+        path.startswith('/chat/') or path == '/qa/stream'
+        or (request.method == 'POST' and (path == '/research/tasks'
+            or path.endswith('/graph/build') or path.endswith('/compare')))
+    )
+    if request.method != 'OPTIONS' and ai_request and getattr(request.app, 'llm', None) is None:
+        from fastapi.responses import JSONResponse
+        return JSONResponse({'detail': '请在 PaperQuery_Backend/.env 填入 DEEPSEEK_API_KEY，然后重启完整后端。'}, status_code=503)
+    return await call_next(request)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.FRONTEND_ORIGINS,
@@ -231,4 +235,4 @@ app.include_router(router_studio.router)
 app.include_router(router_collaboration.router)
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="127.0.0.1", port=8001)

@@ -13,6 +13,6 @@ def translate(translatetext: TranslateRequest, user=Depends(get_current_user)):
         raise HTTPException(status_code=413, detail="单次翻译请少于 12000 个字符")
     try:
         result = Translator().translate(translatetext.text)
-    except (ImportError, RuntimeError) as exc:
+    except Exception as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
-    return {"status_code": 200, "msg": "translated offline", "data": {"text": result}}
+    return {"status_code": 200, "msg": "translated", "data": {"text": result}}

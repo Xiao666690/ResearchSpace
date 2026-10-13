@@ -29,7 +29,7 @@ def get_chat_agent(request: Request, model: str):
 def chat_with_paper_generate(chat: Chat_Request, request: Request, token: str = Depends(oauth2_scheme)):
     agent = get_chat_agent(request, chat.model)
     docs = request.app.chroma_db.query_paper_with_score_layer1_by_filter(
-        chat.input,
+        chat.question,
         {"documentID": chat.ref.documentID}
     )
     print(docs)
@@ -52,11 +52,7 @@ def chunked_yield(data, chunk_size=3):
 
 
 def get_translators():
-    secret_id = os.getenv("TENCENT_SECRET_ID", "")
-    secret_key = os.getenv("TENCENT_SECRET_KEY", "")
-    translator = Translator(from_lang="zh", to_lang="en", secret_id=secret_id, secret_key=secret_key)
-    translator_rev = Translator(from_lang="en", to_lang="zh", secret_id=secret_id, secret_key=secret_key)
-    return translator, translator_rev
+    return Translator(from_lang='zh', to_lang='en'), Translator(from_lang='en', to_lang='zh')
 
 
 @router.post("/chat/generate_flow")

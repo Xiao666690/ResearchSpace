@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from langchain_chroma import Chroma
 
@@ -16,20 +17,26 @@ class AcadeChroma:
         self.current_layer2_count=self.chroma_db_layer2._collection.count()
         self.retrieval_enhancer = None
     # 增
-    def add_paper_to_layer1(self,texts,metadatas):
-        # 分批写入：一次性 embedding 整篇论文会让 ONNX 内存瞬间暴涨，
-        # Windows 可能直接杀掉 Worker 进程。改为每批 64 个文本块循环写入。
-        BATCH = 64
-        for i in range(0, len(texts), BATCH):
-            self.chroma_db_layer1.add_texts(
-                texts[i:i+BATCH],
-                metadatas[i:i+BATCH],
-            )
-        self.current_layer1_count=self.chroma_db_layer1._collection.count()
-    
-    def add_paper_to_layer2(self,texts,metadatas):
-        self.chroma_db_layer2.add_texts(texts, metadatas)
-        self.current_layer2_count=self.chroma_db_layer2._collection.count()
+    def _upsert_texts(self, collection, texts, metadatas):
+        ids = []
+        metadata = []
+        for index, (value, original) in enumerate(zip(texts, metadatas)):
+            meta = dict(original)
+            identity = f"{meta.get('knowledge_name') or meta.get('knowledgeID')}:{meta.get('documentID')}:{meta.get('page_number', 0)}:{index}:{value}"
+            cid = str(uuid.uuid5(uuid.NAMESPACE_URL, identity))
+            ids.append(cid)
+            meta['chunk_id'] = cid
+            metadata.append(meta)
+        for offset in range(0, len(texts), 64):
+            collection.add_texts(texts[offset:offset+64], metadata[offset:offset+64], ids=ids[offset:offset+64])
+
+    def add_paper_to_layer1(self, texts, metadatas):
+        self._upsert_texts(self.chroma_db_layer1, texts, metadatas)
+        self.current_layer1_count = self.chroma_db_layer1._collection.count()
+
+    def add_paper_to_layer2(self, texts, metadatas):
+        self._upsert_texts(self.chroma_db_layer2, texts, metadatas)
+        self.current_layer2_count = self.chroma_db_layer2._collection.count()
 
     # 查 
     # 全局查询 , 根据问题返回检索出来的文档

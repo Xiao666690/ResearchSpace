@@ -15,10 +15,13 @@ if os.environ.get("ALL_PROXY", "").lower().startswith("socks5h://"):
 class LLM:
     def __init__(self):
         self.llms = {}
+        self.client_options = {'timeout': float(os.getenv('LLM_TIMEOUT_SECONDS', '90')),
+                               'max_retries': int(os.getenv('LLM_MAX_RETRIES', '2'))}
 
         # OpenAI (保留兼容)
         if os.getenv("OPENAI_API_KEY"):
             self.llms['openai'] = ChatOpenAI(
+                **self.client_options,
                 model="gpt-4o-mini",
                 openai_api_key=os.getenv("OPENAI_API_KEY"),
                 openai_api_base=os.getenv("OPENAI_API_BASE") or None,
@@ -29,7 +32,9 @@ class LLM:
         if not os.getenv("DEEPSEEK_API_KEY"):
             raise RuntimeError("DEEPSEEK_API_KEY is not configured")
         self.llms['deepseek'] = ChatOpenAI(
-            model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+            **self.client_options,
+            model=os.getenv("DEEPSEEK_MODEL", "deepseek-flash"),
+            extra_body={'thinking': {'type': os.getenv('DEEPSEEK_THINKING', 'disabled')}},
             openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
             openai_api_base=os.getenv("DEEPSEEK_API_BASE"),
         )
@@ -37,6 +42,7 @@ class LLM:
         # Kimi K3 (Moonshot)
         if os.getenv("KIMI_API_KEY"):
             self.llms['kimi'] = ChatOpenAI(
+                **self.client_options,
                 model=os.getenv("KIMI_MODEL", "kimi-k3"),
                 temperature=1,
                 openai_api_key=os.getenv("KIMI_API_KEY"),
@@ -46,6 +52,7 @@ class LLM:
         # Zhipu AI / GLM（OpenAI-compatible）
         if os.getenv("ZHIPU_API_KEY"):
             self.llms['zhipu'] = ChatOpenAI(
+                **self.client_options,
                 model=os.getenv("ZHIPU_MODEL", "glm-4-flash"),
                 openai_api_key=os.getenv("ZHIPU_API_KEY"),
                 openai_api_base=os.getenv(
@@ -70,7 +77,7 @@ class LLM:
     ## 将提示词发送给大模型，获取回复
     def chat_with_llm(self, chat_prompt):
         print(chat_prompt)
-        max_retries = 5
+        max_retries = 2
         retries = 0
         while retries < max_retries:
             try:
@@ -89,13 +96,16 @@ class LLM:
             raise ValueError(f"Model '{model_name}' is not configured")
         if model_name == 'deepseek':
             return ChatOpenAI(
-                model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+                **self.client_options,
+                model=os.getenv("DEEPSEEK_MODEL", "deepseek-flash"),
+                extra_body={'thinking': {'type': os.getenv('DEEPSEEK_THINKING', 'disabled')}},
                 streaming=True,
                 openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
                 openai_api_base=os.getenv("DEEPSEEK_API_BASE"),
             )
         elif model_name == 'kimi':
             return ChatOpenAI(
+                **self.client_options,
                 model=os.getenv("KIMI_MODEL", "kimi-k3"),
                 streaming=True,
                 temperature=1,
@@ -104,6 +114,7 @@ class LLM:
             )
         elif model_name == 'openai':
             return ChatOpenAI(
+                **self.client_options,
                 model="gpt-4o-mini",
                 streaming=True,
                 openai_api_key=os.getenv("OPENAI_API_KEY"),
@@ -112,6 +123,7 @@ class LLM:
             )
         elif model_name == 'zhipu':
             return ChatOpenAI(
+                **self.client_options,
                 model=os.getenv("ZHIPU_MODEL", "glm-4-flash"),
                 streaming=True,
                 openai_api_key=os.getenv("ZHIPU_API_KEY"),

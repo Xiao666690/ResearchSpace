@@ -37,7 +37,9 @@ class DataProcessAgent:
                         'page_number': page_num + 1
                     }
                     chunksMetadataList.append(metadata)
-        print(chunksMetadataList[0])
+        if not chunks:
+            doc.close()
+            raise ValueError('PDF 没有可提取文本；请先对扫描件进行 OCR 后再上传')
         self.chromadb.add_paper_to_layer1(chunks, chunksMetadataList)
 
         
@@ -103,23 +105,12 @@ class DataProcessAgent:
 
 
        # print(len(prompt))
-        max_retries = 5
-        retries = 0
-        while retries < max_retries:
+        for attempt in range(2):
             try:
                 response = self.llm.chat_with_llm(call_prompt)
-                if check_and_parse_json(response.content)!=None:
-                    break
-                print("Summary response was not valid JSON")
+                parsed = check_and_parse_json(response.content) if response is not None else None
+                if parsed is not None:
+                    return parsed
             except Exception:
-                retries += 1
-                if retries == max_retries:
-                    print("Max retries reached. Exiting...")
-                    return None
-                print(f"Retrying... (Attempt {retries})")
-        return check_and_parse_json(response.content)
-    
-
-
-
-
+                pass
+        return None

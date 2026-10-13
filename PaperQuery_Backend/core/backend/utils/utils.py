@@ -143,7 +143,9 @@ def vector_paper_for_tmp(filepath,file_hash,knowledgeID,chromadb:AcadeChroma):
                     'page_number': page_num + 1
                 }
                 chunksMetadataList.append(metadata)
-    print(chunksMetadataList[0])
+    if not chunks:
+        doc.close()
+        raise ValueError('PDF 没有可提取文本；请先进行 OCR')
     chromadb.add_paper_to_layer1(chunks, chunksMetadataList)
     return len(chunksMetadataList)
 

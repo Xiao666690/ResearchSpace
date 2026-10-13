@@ -38,15 +38,30 @@ def _english_to_chinese():
 
 
 class Translator:
-    def __init__(self, from_lang="en", to_lang="zh"):
-        if (from_lang, to_lang) != ("en", "zh"):
-            raise ValueError("目前仅支持离线英文翻译为简体中文")
+    def __init__(self, from_lang="en", to_lang="zh", llm=None):
+        if from_lang not in ('en', 'zh') or to_lang not in ('en', 'zh'):
+            raise ValueError('目前支持英文和简体中文互译')
+        self.from_lang, self.to_lang, self.llm = from_lang, to_lang, llm
 
     def translate(self, text: str) -> str:
         source = re.sub(r"-\s*\r?\n\s*", "", text.replace("\u00ad", ""))
         source = " ".join(source.split())
         if not source:
             return ""
+        if self.from_lang == self.to_lang:
+            return source
+        if os.getenv('TRANSLATION_PROVIDER', 'deepseek').lower() != 'offline':
+            if self.llm is None:
+                self.llm = _translation_llm()
+            from langchain_core.messages import SystemMessage, HumanMessage
+            target = '简体中文' if self.to_lang == 'zh' else 'English'
+            answer = self.llm.invoke([
+                SystemMessage(content=f'将用户文本翻译为{target}。只输出译文，保留论文术语、公式和引用编号，不添加解释。'),
+                HumanMessage(content=source),
+            ])
+            return answer.content
+        if (self.from_lang, self.to_lang) != ('en', 'zh'):
+            raise RuntimeError('离线模式仅支持英译中；中英互译请使用 TRANSLATION_PROVIDER=deepseek')
         translation = _english_to_chinese()
         chunks: list[str] = []
         current = ""
@@ -69,3 +84,11 @@ class Translator:
         if current:
             chunks.append(current)
         return "\n\n".join(translation.translate(chunk) for chunk in chunks)
+
+
+@lru_cache(maxsize=1)
+def _translation_llm():
+    from core.llm.LLM import LLM
+    if not os.getenv('DEEPSEEK_API_KEY', '').strip():
+        raise RuntimeError('请配置 DEEPSEEK_API_KEY 以启用翻译')
+    return LLM().get_llm('deepseek')

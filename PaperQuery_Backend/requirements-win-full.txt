@@ -1,0 +1,2 @@
+# Tested Windows/Python 3.12 environment, including transitive dependencies.
+-r requirements-win-full.lock.txt

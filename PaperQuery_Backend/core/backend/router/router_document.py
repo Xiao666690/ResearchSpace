@@ -32,6 +32,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 router = APIRouter()
 
 
+def validate_pdf_upload(content):
+    limit = int(os.getenv('MAX_UPLOAD_MB', '50')) * 1024 * 1024
+    if len(content) > limit:
+        raise HTTPException(413, 'PDF 超过上传大小限制')
+    if not content.startswith(b'%PDF-'):
+        raise HTTPException(422, '请上传有效的 PDF 文件')
+    try:
+        with fitz.open(stream=content, filetype='pdf') as pdf:
+            if pdf.needs_pass:
+                raise HTTPException(422, '请先解除 PDF 密码保护')
+            if not any(page.get_text('text').strip() for page in pdf):
+                raise HTTPException(422, 'PDF 没有可提取文本；扫描件请先进行 OCR 后再上传')
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(422, 'PDF 无法读取，请检查文件是否损坏') from exc
+
+
 class ExternalPaperImport(BaseModel):
     pdf_url: str
     knowledgeID: str
@@ -213,6 +231,7 @@ async def upload_document(
     # 计算文件内容 MD5，作为跨临时上传和 Library 的统一 documentID。
     hasher = hashlib.md5()
     file_content = await documentFile.read()
+    validate_pdf_upload(file_content)
     hasher.update(file_content)
     file_md5 = hasher.hexdigest()
     print("FILE_MD5",file_md5)
@@ -347,6 +366,7 @@ async def upload_library_document(
         # 计算文件的MD5哈希值
     hasher = hashlib.md5()
     file_content = await documentFile.read()
+    validate_pdf_upload(file_content)
     hasher.update(file_content)
     file_md5 = hasher.hexdigest()
     print("FILE_MD5",file_md5)

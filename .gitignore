@@ -49,3 +49,7 @@ PaperQuery_Frontend/.eslintrc-auto-import.json
 /cinematic-ui/
 /skills/
 /skills-lock.json
+
+# Track local backend setup documentation
+!BACKEND_SETUP.md
+!LOCAL_PROJECT_GUIDE.md

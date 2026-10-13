@@ -47,7 +47,12 @@ class BM25Retriever:
         if not scoped:
             return []
 
-        tokenized = [tokenize(c.text) for c in scoped]
+        pairs = [(c, tokenize(c.text)) for c in scoped]
+        pairs = [(c, tokens) for c, tokens in pairs if tokens]
+        if not pairs:
+            return []
+        scoped = [c for c, _ in pairs]
+        tokenized = [tokens for _, tokens in pairs]
         bm25 = BM25Okapi(tokenized)
         scores = bm25.get_scores(tokenize(query))
         top = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:k]

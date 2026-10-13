@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from core.common.runtime import configure_runtime
+configure_runtime()
 DB_PATH = os.getenv('DB_PATH')
 if not DB_PATH:
     raise RuntimeError('DB_PATH is required; configure PaperQuery_Backend/.env before starting the API')
